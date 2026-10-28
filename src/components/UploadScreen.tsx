@@ -34,7 +34,8 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
   const [isSpecimenOpen, setIsSpecimenOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const defaultFileName = 'Form_A1_Rahul_Kumar_Dossier.pdf';
+  const defaultFileName =
+    'Dossier_EoA_Nalanda_Vishwa_Academy_Submission_SYNTHETIC.pdf';
   const defaultFields: FieldValidationDetail[] = buildInitialScenarioFields('D');
 
   const handleFileChange = (file?: File) => {
@@ -51,7 +52,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Short one-line summary */}
       <div className="text-slate-600 text-sm">
-        Upload an application dossier to run OCR extraction, authenticity analysis, and regulatory compliance verification.
+        Upload an AICTE institution approval dossier (EoA / New Course / Increase in Intake) to run OCR extraction, document &amp; photo authenticity screening, and APH 2024–27 regulatory compliance verification.
       </div>
 
       {/* Main Single Column Card */}
@@ -103,8 +104,8 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
           </p>
           <p className="text-xs text-slate-500 mt-1">
             {uploadedFile
-              ? 'Ready for processing'
-              : `Default specimen: ${defaultFileName} (1.38 MB)`}
+              ? 'Ready for AICTE Scrutiny processing'
+              : `Default specimen: ${defaultFileName} (2.84 MB • SYNTHETIC)`}
           </p>
           {uploadedFile && (
             <button

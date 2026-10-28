@@ -134,7 +134,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by Application ID, Applicant Name (e.g., RAHULKUMAR), or File Name..."
+            placeholder="Search by AICTE Application ID, Institution Name (e.g., NALANDA VISHWA), or File Name..."
             className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:border-[#14B8A6]"
           />
         </div>
@@ -162,9 +162,9 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
-                <th className="py-3.5 px-4 font-bold">Run ID / App ID</th>
-                <th className="py-3.5 px-4 font-bold">Applicant Name</th>
-                <th className="py-3.5 px-4 font-bold">Document Profile</th>
+                <th className="py-3.5 px-4 font-bold">Run ID / AICTE App ID</th>
+                <th className="py-3.5 px-4 font-bold">Institution Name</th>
+                <th className="py-3.5 px-4 font-bold">Dossier Profile</th>
                 <th className="py-3.5 px-4 font-bold">Overall Status</th>
                 <th className="py-3.5 px-4 font-bold">Field Findings</th>
                 <th className="py-3.5 px-4 font-bold text-right">Actions</th>
@@ -172,9 +172,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
             </thead>
             <tbody className="divide-y divide-slate-200">
               {filteredRuns.map((r) => {
-                const applicant =
-                  r.fields.find((f) => f.key === 'applicantName')
-                    ?.extractedValue || '—';
+                const institution =
+                  r.fields.find((f) => f.key === 'institutionName')
+                    ?.extractedValue ||
+                  r.fields[0]?.extractedValue ||
+                  '—';
                 const wrongCount = r.fields.filter(
                   (f) => f.status === 'wrong'
                 ).length;
@@ -202,12 +204,12 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                     </td>
 
                     <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-                      {applicant}
+                      {institution}
                     </td>
 
                     <td className="py-3.5 px-4">
                       <span className="font-semibold text-slate-800">
-                        Statutory Form A-1
+                        AICTE APH 2024–27 Dossier
                       </span>
                     </td>
 
@@ -218,11 +220,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                     <td className="py-3.5 px-4">
                       {wrongCount > 0 ? (
                         <span className="text-[#DC2626] font-semibold">
-                          {wrongCount} violation(s) cited
+                          {wrongCount} deficiency(s) cited
                         </span>
                       ) : (
                         <span className="text-[#16A34A] font-semibold">
-                          7/7 fields compliant
+                          {r.fields.length}/{r.fields.length} fields compliant
                         </span>
                       )}
                     </td>

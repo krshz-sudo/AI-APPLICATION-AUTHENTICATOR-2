@@ -1,7 +1,7 @@
 import { SqlLogEntry, VerificationRun } from '../types';
 
-const STORAGE_KEY_RUNS = 'ai_document_analyser_runs_v1';
-const STORAGE_KEY_SQL = 'ai_document_analyser_sql_v1';
+const STORAGE_KEY_RUNS = 'ai_document_analyser_aicte_runs_v2';
+const STORAGE_KEY_SQL = 'ai_document_analyser_aicte_sql_v2';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

@@ -23,13 +23,16 @@ let apiLogs: ApiLogEntry[] = [
     latencyMs: 2410,
     requestJson: {
       scenario: 'D',
-      fileName: 'Form_A1_Rahul_Kumar_Submission.pdf',
+      fileName: 'Dossier_EoA_Nalanda_Vishwa_Academy_Submission_SYNTHETIC.pdf',
       pipelineOrder: ['OCR', 'TEMPLATE_GATE', 'GAN_AUTHENTICITY', 'RAG_COMPLIANCE'],
     },
     responseJson: {
       runId: 'VER-2026-90101',
       overallStatus: 'FAILED',
-      nonCompliantFields: ['applicantName (APP-4.2)', 'validUntil (CERT-5.3)'],
+      nonCompliantFields: [
+        'facultyStudentRatio (APH-6.1)',
+        'fireNocValidUntil (APH-5.1)',
+      ],
       simulated: true,
     },
   },

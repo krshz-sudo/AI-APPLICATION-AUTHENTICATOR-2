@@ -37,13 +37,18 @@ export const PdfSnippetModal: React.FC<PdfSnippetModalProps> = ({
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-semibold text-sm sm:text-base">
                   {entry.fileName}
                 </h3>
                 <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#FF9933]/20 text-[#FF9933] border border-[#FF9933]/40">
                   DEMO DATA • SIMULATED PDF
                 </span>
+                {entry.unverified && (
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/50">
+                    UNVERIFIED — confirm against APH 2024-27 text
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-300">
                 {entry.docName} — Page {entry.page} • {entry.section} (
@@ -100,6 +105,11 @@ export const PdfSnippetModal: React.FC<PdfSnippetModalProps> = ({
               <p className="text-sm sm:text-base font-sans font-medium text-slate-900 leading-relaxed bg-yellow-100/80 px-2.5 py-2 rounded border border-yellow-300">
                 {entry.text}
               </p>
+              {entry.unverified && (
+                <p className="mt-2 text-xs font-sans font-semibold text-amber-900 bg-amber-100/90 border border-amber-300 px-2.5 py-1.5 rounded">
+                  Notice: UNVERIFIED — confirm exact clause number and numeric threshold against official AICTE APH 2024-27 text.
+                </p>
+              )}
             </div>
 
             {/* Related passages in same document */}

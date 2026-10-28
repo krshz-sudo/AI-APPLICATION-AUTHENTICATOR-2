@@ -153,6 +153,13 @@ export const FieldValidationCard: React.FC<FieldValidationCardProps> = ({
           >
             {statusStyles.labelText}
           </span>
+          {field.sourceDoc && (
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/80 text-slate-600 border border-slate-200">
+              {field.sourceDoc.split(':')[0]}
+              {field.page ? ` • p.${field.page}` : ''}
+              {field.confidence ? ` • OCR ${field.confidence}` : ''}
+            </span>
+          )}
           {field.wasEditedAndVerified && field.status === 'correct' && (
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-600 text-white flex items-center gap-1">
               <Sparkles className="w-3 h-3" />

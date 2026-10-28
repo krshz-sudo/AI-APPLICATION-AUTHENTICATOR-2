@@ -48,6 +48,7 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
   onToggleMarkForReview,
   onUpdateReviewerNotes,
   onRecordReviewerDecision,
+  onSwitchScenario,
   onGoToReport,
 }) => {
   const [highlightedField, setHighlightedField] = useState<FieldKey | null>(null);
@@ -199,13 +200,13 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
                 App ID: {run.applicationId} • Run: {run.id}
               </span>
               <span className="text-xs font-medium px-2 py-0.5 rounded bg-white/80 border border-slate-300 text-slate-700">
-                Statutory Form A-1
+                AICTE APH 2024–27 Scrutiny Dossier (SYNTHETIC)
               </span>
             </div>
             <p className="text-sm font-semibold mt-1.5">{run.statusBannerText}</p>
             {run.overallStatus === 'PASSED' && (
               <p className="text-xs font-medium text-emerald-800 mt-0.5">
-                Verification Statement: Application is{' '}
+                Verification Statement: Institution dossier is{' '}
                 <strong>verified within the scope of checks performed</strong>.
               </p>
             )}
@@ -213,6 +214,20 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {onSwitchScenario && (
+            <select
+              aria-label="Switch AICTE Demo Scenario"
+              value={run.scenarioId}
+              onChange={(e) => onSwitchScenario(e.target.value as ScenarioId)}
+              className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-800 text-xs font-semibold shadow-sm"
+            >
+              {(['D', 'A', 'B', 'C', 'E'] as ScenarioId[]).map((sc) => (
+                <option key={sc} value={sc}>
+                  {SCENARIO_META[sc].shortLabel}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             type="button"
             onClick={onGoToReport}
@@ -228,10 +243,10 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-            Pipeline Stage Summary
+            AICTE Scrutiny Pipeline Stage Summary
           </h2>
           <span className="text-[11px] font-mono text-slate-500">
-            All stages simulated in browser
+            All stages simulated in browser • Synthetic Dossier
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -240,21 +255,21 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
             run.stages.template.state,
             run.stages.template.state === 'failed'
               ? 'TEMPLATE VALIDATION FAILED'
-              : 'Form A-1 schema & mandatory fields'
+              : 'Annexures 1–9, Portal IDs & Date Syntax'
           )}
           {renderStagePill(
-            '2. Authenticity (GAN)',
+            '2. Authenticity (Document & Photo)',
             run.stages.authenticity.state,
             run.stages.authenticity.state === 'skipped'
               ? 'Skipped (Halted at Template Gate)'
               : run.stages.authenticity.result?.riskScoreNormalized || 'Low risk indicator'
           )}
           {renderStagePill(
-            '3. RAG Compliance',
+            '3. RAG APH 2024–27 Compliance',
             run.stages.compliance.state,
             run.stages.compliance.state === 'skipped'
               ? 'Skipped (Halted at earlier gate)'
-              : run.stages.compliance.result?.status || 'Evaluated against 20 corpus rules'
+              : run.stages.compliance.result?.status || 'Evaluated against 20 APH corpus rules'
           )}
         </div>
       </div>
@@ -273,28 +288,62 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
             showBoundingBoxes={true}
           />
 
-          {/* Authenticity Flag Callout on Left when Scenario C */}
-          {run.stages.authenticity.state === 'flagged' &&
-            run.stages.authenticity.result && (
-              <div className="rounded-2xl border-2 border-[#F59E0B] bg-amber-50 p-4 space-y-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase text-amber-900 flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
-                    Visual Authenticity Risk Indicator
-                  </span>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-950">
-                    {run.stages.authenticity.result.riskScoreNormalized}
-                  </span>
-                </div>
-                <p className="text-xs text-amber-950 leading-relaxed">
-                  {run.stages.authenticity.result.llmExplanation}
-                </p>
-                <p className="text-[11px] font-medium text-amber-800 border-t border-amber-200 pt-2">
-                  Note: GAN-based analysis is a risk indicator, not proof of forgery,
-                  and is different from cryptographic signature validation.
-                </p>
+          {/* Authenticity & Simulated Issuer Verification Panel on Left */}
+          {run.stages.authenticity.result && (
+            <div
+              className={`rounded-2xl border-2 p-4 space-y-2.5 shadow-sm ${
+                run.stages.authenticity.state === 'flagged'
+                  ? 'border-[#F59E0B] bg-amber-50'
+                  : 'border-slate-200 bg-white'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-slate-900 flex items-center gap-1.5">
+                  <AlertTriangle
+                    className={`w-4 h-4 ${
+                      run.stages.authenticity.state === 'flagged'
+                        ? 'text-[#F59E0B]'
+                        : 'text-[#14B8A6]'
+                    }`}
+                  />
+                  Forensic Risk &amp; Issuer Verification
+                </span>
+                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
+                  {run.stages.authenticity.result.riskScoreNormalized}
+                </span>
               </div>
-            )}
+              <p className="text-xs text-slate-700 leading-relaxed">
+                {run.stages.authenticity.result.llmExplanation}
+              </p>
+              {run.stages.authenticity.result.issuerVerification && (
+                <div className="space-y-1.5 pt-1.5 border-t border-slate-200/80">
+                  {run.stages.authenticity.result.issuerVerification.map((row) => (
+                    <div
+                      key={row.referenceId}
+                      className="text-[11px] bg-white/90 p-2 rounded border border-slate-200 flex items-center justify-between gap-2"
+                    >
+                      <span className="font-medium text-slate-700 truncate">
+                        {row.source}: {row.documentChecked}
+                      </span>
+                      <span
+                        className={`font-mono font-bold text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+                          row.status.startsWith('VERIFIED')
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-200 text-amber-950'
+                        }`}
+                      >
+                        {row.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-[11px] font-medium text-slate-600 border-t border-slate-200/80 pt-2">
+                Note: Visual &amp; photo-hash analysis is a risk indicator, not proof of
+                forgery, and is separate from DigiLocker / University portal verification.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN (7 cols): Field Cards + Reviewer Notes + Decision Actions */}

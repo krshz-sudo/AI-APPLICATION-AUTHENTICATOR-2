@@ -26,13 +26,16 @@ export type StageState =
   | 'skipped';
 
 export type FieldKey =
-  | 'applicantName'
-  | 'dateOfBirth'
-  | 'address'
-  | 'applicationNumber'
-  | 'certificateNumber'
-  | 'validFrom'
-  | 'validUntil';
+  | 'institutionName'
+  | 'permanentInstituteId'
+  | 'applicationId'
+  | 'applicationType'
+  | 'courseName'
+  | 'proposedIntake'
+  | 'builtUpAreaSqm'
+  | 'landTenureYears'
+  | 'fireNocValidUntil'
+  | 'facultyStudentRatio';
 
 export interface CorpusEntry {
   docName: string;
@@ -42,6 +45,7 @@ export interface CorpusEntry {
   sectionTitle: string;
   ruleId: string;
   text: string;
+  unverified?: boolean;
 }
 
 export interface RetrievedPassage extends CorpusEntry {
@@ -53,9 +57,12 @@ export interface FieldValidationDetail {
   label: string;
   extractedValue: string;
   expectedValue?: string;
+  sourceDoc?: string;
+  page?: number;
+  confidence?: string;
   status: FieldStatus;
   /**
-   * For 'correct' fields: e.g. "Complies with Guideline 3.2, Section 4, page 12"
+   * For 'correct' fields: e.g. "Complies with AICTE APH 2024-27, Chapter VI, Clause 6.2, page 119 (Rule ID APH-6.1)"
    * For 'wrong' fields: MUST follow "<Field> is <problem> due to <Section X.Y> of <Guideline/Rule document name>, page N (Rule ID ...)"
    * For 'warning' / 'needs_review': "No matching rule found in the reference documents. Requires human review."
    */
@@ -93,13 +100,22 @@ export interface AuthenticityIndicator {
   };
 }
 
+export interface IssuerVerificationRow {
+  source: string;
+  documentChecked: string;
+  referenceId: string;
+  status: 'VERIFIED (SIMULATED)' | 'MISMATCH / MANUAL CHECK (SIMULATED)';
+  detail: string;
+}
+
 export interface AuthenticityResult {
   passed: boolean;
   status: 'PASSED' | 'FLAGGED / REQUIRES REVIEW';
   riskLevel: 'Low Risk Indicator' | 'Elevated Risk Indicator';
-  riskScoreNormalized: string; // e.g. "0.14 (Low)" or "0.78 (Elevated Risk Indicator)"
+  riskScoreNormalized: string; // e.g. "0.12 (Low Risk Indicator)" or "0.78 (Elevated Risk Indicator)"
   llmExplanation: string;
   indicators: AuthenticityIndicator[];
+  issuerVerification?: IssuerVerificationRow[];
 }
 
 export interface DeterministicCheck {

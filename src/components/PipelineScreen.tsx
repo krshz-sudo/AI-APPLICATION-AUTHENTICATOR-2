@@ -262,7 +262,8 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
                   1. Document Input + OCR
                 </h3>
                 <p className="text-xs text-slate-600 mt-1">
-                  Extracted {stages.ocr.fieldsExtractedCount}/7 fields
+                  Extracted {stages.ocr.fieldsExtractedCount}/
+                  {activeRun.fields.length || 10} fields
                 </p>
               </div>
             );
@@ -473,10 +474,47 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
                   ))}
                 </div>
 
+                {/* Separate Simulated Issuer Verification Row (DigiLocker / University) */}
+                {stages.authenticity.result.issuerVerification && (
+                  <div className="space-y-2 pt-2 border-t border-slate-200">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Issuer Portal Verification (DigiLocker / Affiliating University — Separate from Visual Risk Screening)
+                      </span>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
+                        SIMULATED GATEWAY
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {stages.authenticity.result.issuerVerification.map((row) => (
+                        <div
+                          key={row.referenceId}
+                          className={`p-2.5 rounded-lg border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                            row.status.startsWith('VERIFIED')
+                              ? 'border-emerald-200 bg-emerald-50/50 text-emerald-950'
+                              : 'border-amber-300 bg-amber-50/80 text-amber-950'
+                          }`}
+                        >
+                          <div>
+                            <div className="font-bold">
+                              {row.source} •{' '}
+                              <span className="font-mono">{row.referenceId}</span>
+                            </div>
+                            <div className="text-[11px] opacity-85">
+                              {row.documentChecked}: {row.detail}
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/90 border border-current/20 shrink-0 self-start sm:self-center">
+                            {row.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-[11px] text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                  <strong>Methodology Note:</strong> GAN-based analysis is a risk
-                  indicator, not proof of forgery, and is different from cryptographic
-                  signature validation.
+                  <strong>Methodology Note:</strong> GAN/ELA document analysis and duplicate photo hashing are risk indicators, not proof of forgery, and are separate from cryptographic PKI or issuer portal validation.
                 </p>
               </div>
             ) : (
@@ -562,6 +600,11 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
                             <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-[#0B1F3A] text-[#14B8A6]">
                               Rule {p.ruleId}
                             </span>
+                            {p.unverified && (
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                                UNVERIFIED — confirm against APH 2024-27 text
+                              </span>
+                            )}
                           </div>
                           <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-teal-50 text-[#0F766E] border border-teal-200">
                             Similarity: {p.similarityScore.toFixed(2)}
@@ -639,7 +682,7 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-[#14B8A6]" />
-                  Extracted &amp; Validated Fields ({activeRun.fields.length}/7)
+                  Extracted &amp; Validated Dossier Fields ({activeRun.fields.length})
                 </h3>
                 <span className="text-xs text-slate-500">
                   Click red (i) for rule popover

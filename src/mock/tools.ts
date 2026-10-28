@@ -12,17 +12,88 @@ import { pgInsertVerificationRun, pgUpdateVerificationRun } from './postgres';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+export const DOSSIER_DOCUMENT_TYPES = [
+  'Annexure-1: Trust / Society Registration Deed',
+  'Annexure-2: Land Ownership / Registered Lease Deed',
+  'Annexure-3: Building Plan & Built-Up Area Certificate',
+  'Annexure-4: Fire & Life Safety NOC',
+  'Annexure-5: Affiliating University Consent Letter (Format-2)',
+  'Annexure-6: Certified Faculty Roster & Cadre Summary',
+  'Annexure-7: Audited Financial Statements',
+  'Annexure-8: Geotagged Infrastructure & Lab Photographs',
+  'Annexure-9: Portal Intake & Programme Declaration',
+] as const;
+
 export const FIELD_BBOXES: Record<
   FieldKey,
   { top: number; left: number; width: number; height: number }
 > = {
-  applicationNumber: { top: 21, left: 8, width: 41, height: 8.5 },
-  certificateNumber: { top: 21, left: 52, width: 40, height: 8.5 },
-  applicantName: { top: 34, left: 8, width: 54, height: 9 },
-  dateOfBirth: { top: 46, left: 8, width: 54, height: 9 },
-  address: { top: 58, left: 8, width: 84, height: 11 },
-  validFrom: { top: 73, left: 8, width: 41, height: 9 },
-  validUntil: { top: 73, left: 52, width: 40, height: 9 },
+  institutionName: { top: 14, left: 6, width: 88, height: 8 },
+  permanentInstituteId: { top: 24, left: 6, width: 42, height: 8 },
+  applicationId: { top: 24, left: 52, width: 42, height: 8 },
+  applicationType: { top: 34, left: 6, width: 42, height: 8 },
+  courseName: { top: 34, left: 52, width: 42, height: 8 },
+  proposedIntake: { top: 45, left: 6, width: 42, height: 9 },
+  builtUpAreaSqm: { top: 45, left: 52, width: 42, height: 9 },
+  landTenureYears: { top: 57, left: 6, width: 88, height: 8.5 },
+  fireNocValidUntil: { top: 68, left: 6, width: 42, height: 9 },
+  facultyStudentRatio: { top: 68, left: 52, width: 42, height: 9 },
+};
+
+export const FIELD_SOURCE_META: Record<
+  FieldKey,
+  { sourceDoc: string; page: number; confidence: string }
+> = {
+  institutionName: {
+    sourceDoc: 'Annexure-1: Trust / Society Registration Deed',
+    page: 1,
+    confidence: '99.2%',
+  },
+  permanentInstituteId: {
+    sourceDoc: 'Annexure-9: Portal Intake & Programme Declaration',
+    page: 1,
+    confidence: '99.4%',
+  },
+  applicationId: {
+    sourceDoc: 'Annexure-9: Portal Intake & Programme Declaration',
+    page: 1,
+    confidence: '99.5%',
+  },
+  applicationType: {
+    sourceDoc: 'Annexure-9: Portal Intake & Programme Declaration',
+    page: 2,
+    confidence: '98.9%',
+  },
+  courseName: {
+    sourceDoc: 'Annexure-5: Affiliating University Consent Letter',
+    page: 5,
+    confidence: '98.7%',
+  },
+  proposedIntake: {
+    sourceDoc: 'Annexure-5 & 9: University NOC vs. Intake Declaration',
+    page: 5,
+    confidence: '98.4%',
+  },
+  builtUpAreaSqm: {
+    sourceDoc: 'Annexure-3: Building Plan & Built-Up Area Certificate',
+    page: 3,
+    confidence: '97.9%',
+  },
+  landTenureYears: {
+    sourceDoc: 'Annexure-2: Land Ownership / Registered Lease Deed',
+    page: 2,
+    confidence: '98.1%',
+  },
+  fireNocValidUntil: {
+    sourceDoc: 'Annexure-4: Fire & Life Safety NOC',
+    page: 4,
+    confidence: '97.2%',
+  },
+  facultyStudentRatio: {
+    sourceDoc: 'Annexure-6: Certified Faculty Roster & Cadre Summary',
+    page: 6,
+    confidence: '98.6%',
+  },
 };
 
 export const SCENARIO_META: Record<
@@ -38,53 +109,53 @@ export const SCENARIO_META: Record<
 > = {
   A: {
     id: 'A',
-    shortLabel: 'Scenario A — All Correct',
-    title: 'All Fields Correct (All Stages Pass)',
+    shortLabel: 'Scenario A — Compliant EoA Dossier',
+    title: 'All Dossier Fields Compliant (All 4 Stages Pass)',
     description:
-      'Every extracted field satisfies template and regulatory rules. All 4 pipeline stages pass with green ticks.',
-    defaultFileName: 'Form_A1_Ananya_Sharma_Compliant.pdf',
+      'Synthetic EoA 2026-27 dossier for Sahyadri Institute of Technology & Management. All 10 extracted fields satisfy template, forensic, and APH 2024-27 norms.',
+    defaultFileName: 'Dossier_EoA_2026_Sahyadri_Tech_Compliant_SYNTHETIC.pdf',
     badgeColor: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
   },
   B: {
     id: 'B',
     shortLabel: 'Scenario B — Template Gate Failure',
-    title: 'Template Failure (Missing Cert No. & Wrong Date Format)',
+    title: 'Template Gate Failure (Missing PID & Wrong Fire NOC Date Format)',
     description:
-      'Missing Certificate Number and YYYY-MM-DD Date of Birth. Pipeline halts at the Template Validation Gate; later stages are Skipped.',
-    defaultFileName: 'Form_A1_Vikram_Rao_TemplateError.pdf',
+      'Missing Permanent Institute ID (PID) and ISO YYYY-MM-DD date on Fire NOC. Pipeline halts at Stage 2 Template Gate; downstream stages are Skipped.',
+    defaultFileName: 'Dossier_Intake_Aravalli_Engg_TemplateError_SYNTHETIC.pdf',
     badgeColor: 'bg-red-500/15 text-red-700 border-red-500/30',
   },
   C: {
     id: 'C',
     shortLabel: 'Scenario C — Authenticity Flagged',
-    title: 'Authenticity Flagged (Photo Region Risk Indicator)',
+    title: 'Authenticity Flagged (Fire NOC Date Region & Duplicate Lab Photo)',
     description:
-      'GAN-based visual screening detects a boundary residual risk indicator on the portrait patch and flags for human review.',
-    defaultFileName: 'Form_A1_Suresh_Menon_PhotoFlag.pdf',
+      'Forensic screening detects an elevated risk indicator on the Fire NOC expiry date stamp region and a duplicated Computer Lab photo perceptual hash.',
+    defaultFileName: 'Dossier_EoA_Dakshin_Bharat_IIT_ForensicFlag_SYNTHETIC.pdf',
     badgeColor: 'bg-amber-500/15 text-amber-800 border-amber-500/30',
   },
   D: {
     id: 'D',
-    shortLabel: 'Scenario D — Compliance Failure (Main Demo)',
-    title: 'Compliance Failure ("RAHULKUMAR" & Expired Certificate)',
+    shortLabel: 'Scenario D — APH Compliance Failure (Main Demo)',
+    title: 'Compliance Failure (Deficient FSR 1:25 & Expired Fire NOC)',
     description:
-      'Main Demo Scenario: Applicant Name "RAHULKUMAR" violates Rule APP-4.2 and Valid Until "15/03/2024" violates Rule CERT-5.3. Edit inline & Re-verify to turn green.',
-    defaultFileName: 'Form_A1_Rahul_Kumar_Submission.pdf',
+      'Main Demo Scenario: Faculty-Student Ratio "18 Faculty (FSR 1:25)" violates APH-6.1 (1:20 norm) and Fire NOC Valid Until "15/03/2024" violates APH-5.1. Edit inline & Re-verify to turn green.',
+    defaultFileName: 'Dossier_EoA_Nalanda_Vishwa_Academy_Submission_SYNTHETIC.pdf',
     badgeColor: 'bg-rose-500/15 text-rose-700 border-rose-500/30',
   },
   E: {
     id: 'E',
-    shortLabel: 'Scenario E — Ambiguous Evidence (Human Review)',
-    title: 'Ambiguous Evidence — Requires Human Review',
+    shortLabel: 'Scenario E — Ambiguous Case (Human Review)',
+    title: 'Special Category Dossier — Requires Scrutiny / SHC Review',
     description:
-      'Cross-border deputation enclave address and provisional extension have no matching rule in the reference corpus.',
-    defaultFileName: 'Form_A1_Tenzin_Dorji_SpecialEnclave.pdf',
+      'Autonomous Hill Council customary land grant and conditional University Syndicate intake endorsement have no matching deterministic clause in APH 2024-27.',
+    defaultFileName: 'Dossier_Special_Brahmaputra_Frontier_Provisional_SYNTHETIC.pdf',
     badgeColor: 'bg-indigo-500/15 text-indigo-700 border-indigo-500/30',
   },
 };
 
 /**
- * Evaluates a single field deterministically against the mock corpus rules.
+ * Evaluates a single AICTE dossier field deterministically against the mock APH 2024-27 corpus rules.
  * Ensures every error message strictly follows:
  * "<Field> is <problem> due to <Section X.Y> of <Guideline/Rule document name>, page N (Rule ID ...)"
  */
@@ -94,291 +165,443 @@ export function evaluateSingleField(
 ): FieldValidationDetail {
   const val = rawValue.trim();
   const bbox = FIELD_BBOXES[key];
+  const meta = FIELD_SOURCE_META[key];
 
   switch (key) {
-    case 'applicantName': {
+    case 'institutionName': {
       const words = val.split(/\s+/).filter(Boolean);
-      const isUppercase = val === val.toUpperCase() && /^[A-Z\s]+$/.test(val);
-      if (words.length >= 2 && isUppercase) {
+      const isUppercase = val === val.toUpperCase() && val.length >= 10 && words.length >= 2;
+      if (isUppercase) {
         return {
           key,
-          label: 'Applicant Name',
+          label: 'Institution Name',
           extractedValue: val,
+          ...meta,
           status: 'correct',
           inlineCaption:
-            'Complies with Guideline 3.2, Section 4.2, page 12 (Rule ID APP-4.2)',
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter V, Clause 5.8, page 108 (Rule ID APH-5.4) [UNVERIFIED]',
           bbox,
         };
       }
-      const suggestedExpected =
-        val.toUpperCase() === 'RAHULKUMAR'
-          ? 'RAHUL KUMAR'
-          : words.length < 2 && val.length > 5
-          ? `${val.slice(0, 5).toUpperCase()} ${val.slice(5).toUpperCase()}`
-          : 'RAHUL KUMAR';
-
       return {
         key,
-        label: 'Applicant Name',
+        label: 'Institution Name',
         extractedValue: val || '[EMPTY]',
-        expectedValue: suggestedExpected,
+        expectedValue: 'NALANDA VISHWA ENGINEERING ACADEMY (SYNTHETIC)',
+        ...meta,
         status: 'wrong',
         inlineCaption:
-          'Applicant Name is formatted without a space between given name and surname due to Section 4.2 of Application Submission Guidelines 2024, page 12 (Rule ID APP-4.2)',
+          'Institution Name is missing or not formatted in standard uppercase legal entity syntax due to Chapter V, Clause 5.8 of AICTE Approval Process Handbook 2024-27, page 108 (Rule ID APH-5.4)',
         popover: {
-          title: 'Name format is incorrect',
+          title: 'Institution Name format or entity match is non-compliant',
           extractedValue: val || '[EMPTY]',
-          expectedValue: suggestedExpected,
-          why: "Name format is invalid as per Section 4.2 (Applicant Name Format) of 'Application Submission Guidelines 2024', page 12, Rule ID APP-4.2. The name must contain given name and surname separated by a space.",
-          sourceChipLabel:
-            '[Application_Submission_Guidelines_2024.pdf, p.12, Rule APP-4.2]',
-          corpusRuleId: 'APP-4.2',
-          suggestedFix: 'Insert a space between the given name and surname.',
+          expectedValue: 'NALANDA VISHWA ENGINEERING ACADEMY (SYNTHETIC)',
+          why: "Institution Name is non-compliant as per Chapter V, Clause 5.8 (Institution & Sponsoring Trust Name Consistency Across Annexures) of 'AICTE Approval Process Handbook 2024-27', page 108, Rule ID APH-5.4 [UNVERIFIED - confirm against APH 2024-27 text]. Must match the uppercase legal entity name across Trust Deed and NOCs.",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.108, Rule APH-5.4 • UNVERIFIED]',
+          corpusRuleId: 'APH-5.4',
+          suggestedFix:
+            'Enter the full uppercase legal Institution Name matching the Sponsoring Trust Deed.',
         },
         bbox,
       };
     }
 
-    case 'dateOfBirth': {
-      const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(val);
-      if (ddmmyyyy) {
+    case 'permanentInstituteId': {
+      const validPid = /^1-\d{7,10}$/.test(val);
+      if (validPid) {
         return {
           key,
-          label: 'Date of Birth',
+          label: 'Permanent Institute ID (PID)',
           extractedValue: val,
+          ...meta,
           status: 'correct',
           inlineCaption:
-            'Complies with Identity Document Format Rules, Section 2.1, page 6 (Rule ID DOB-2.1)',
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter I, Clause 1.4, page 14 (Rule ID APH-1.1) [UNVERIFIED]',
           bbox,
         };
       }
       return {
         key,
-        label: 'Date of Birth',
+        label: 'Permanent Institute ID (PID)',
         extractedValue: val || '[MISSING]',
-        expectedValue: '14/05/1998',
+        expectedValue: '1-5592509',
+        ...meta,
         status: 'wrong',
         inlineCaption:
-          'Date of Birth is not formatted in DD/MM/YYYY syntax due to Section 2.1 of Identity Document Format Rules, page 6 (Rule ID DOB-2.1)',
+          'Permanent Institute ID (PID) is missing or malformed due to Chapter I, Clause 1.4 of AICTE Approval Process Handbook 2024-27, page 14 (Rule ID APH-1.1)',
         popover: {
-          title: 'Date of Birth format is incorrect',
+          title: 'Permanent Institute ID (PID) is missing or invalid',
           extractedValue: val || '[MISSING]',
-          expectedValue: '14/05/1998',
-          why: "Date of Birth format is invalid as per Section 2.1 (Standard Date of Birth Representation) of 'Identity Document Format Rules', page 6, Rule ID DOB-2.1. Dates must use DD/MM/YYYY format with forward slashes.",
-          sourceChipLabel: '[Identity_Document_Format_Rules.pdf, p.6, Rule DOB-2.1]',
-          corpusRuleId: 'DOB-2.1',
-          suggestedFix: 'Convert the date to DD/MM/YYYY format (e.g., 14/05/1998).',
+          expectedValue: '1-5592509',
+          why: "Permanent Institute ID is non-compliant as per Chapter I, Clause 1.4 (Application ID & Permanent Institute ID Format) of 'AICTE Approval Process Handbook 2024-27', page 14, Rule ID APH-1.1 [UNVERIFIED - confirm against APH 2024-27 text]. Must follow the 1-NNNNNNN portal identifier syntax.",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.14, Rule APH-1.1 • UNVERIFIED]',
+          corpusRuleId: 'APH-1.1',
+          suggestedFix:
+            'Enter the 1-prefixed Permanent Institute ID assigned on the AICTE portal (e.g., 1-5592509).',
         },
         bbox,
       };
     }
 
-    case 'address': {
+    case 'applicationId': {
+      const validAppId = /^1-\d{10,11}$/.test(val);
+      if (validAppId) {
+        return {
+          key,
+          label: 'AICTE Application ID',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter I, Clause 1.4, page 14 (Rule ID APH-1.1) [UNVERIFIED]',
+          bbox,
+        };
+      }
+      return {
+        key,
+        label: 'AICTE Application ID',
+        extractedValue: val || '[MISSING]',
+        expectedValue: '1-44642983297',
+        ...meta,
+        status: 'wrong',
+        inlineCaption:
+          'AICTE Application ID is malformed due to Chapter I, Clause 1.4 of AICTE Approval Process Handbook 2024-27, page 14 (Rule ID APH-1.1)',
+        popover: {
+          title: 'AICTE Application ID format is invalid',
+          extractedValue: val || '[MISSING]',
+          expectedValue: '1-44642983297',
+          why: "AICTE Application ID is non-compliant as per Chapter I, Clause 1.4 (Application ID & Permanent Institute ID Format) of 'AICTE Approval Process Handbook 2024-27', page 14, Rule ID APH-1.1 [UNVERIFIED - confirm against APH 2024-27 text]. Must follow 1-NNNNNNNNNNN.",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.14, Rule APH-1.1 • UNVERIFIED]',
+          corpusRuleId: 'APH-1.1',
+          suggestedFix: 'Format AICTE Application ID as 1- followed by 10–11 digits.',
+        },
+        bbox,
+      };
+    }
+
+    case 'applicationType': {
+      if (val.length >= 5 && !val.includes('[MISSING]')) {
+        return {
+          key,
+          label: 'Application Type',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Annexure-13, Clause 1.9, page 21 (Rule ID APH-1.3) [UNVERIFIED]',
+          bbox,
+        };
+      }
+      return {
+        key,
+        label: 'Application Type',
+        extractedValue: val || '[MISSING]',
+        expectedValue: 'Extension of Approval (EoA 2026-27)',
+        ...meta,
+        status: 'wrong',
+        inlineCaption:
+          'Application Type is missing due to Annexure-13, Clause 1.9 of AICTE Approval Process Handbook 2024-27, page 21 (Rule ID APH-1.3)',
+        popover: {
+          title: 'Application Type declaration is missing',
+          extractedValue: val || '[MISSING]',
+          expectedValue: 'Extension of Approval (EoA 2026-27)',
+          why: "Application Type is required under Annexure-13, Clause 1.9 of 'AICTE Approval Process Handbook 2024-27', page 21, Rule ID APH-1.3 [UNVERIFIED - confirm against APH 2024-27 text].",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.21, Rule APH-1.3 • UNVERIFIED]',
+          corpusRuleId: 'APH-1.3',
+          suggestedFix:
+            'Specify a valid APH category (e.g., Extension of Approval (EoA 2026-27) or Increase in Intake).',
+        },
+        bbox,
+      };
+    }
+
+    case 'courseName': {
+      if (val.length >= 4 && !val.includes('[MISSING]')) {
+        return {
+          key,
+          label: 'Programme & Course Name',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter II, Clause 2.6, page 42 (Rule ID APH-2.1) [UNVERIFIED]',
+          bbox,
+        };
+      }
+      return {
+        key,
+        label: 'Programme & Course Name',
+        extractedValue: val || '[MISSING]',
+        expectedValue: 'B.Tech — Computer Science & Engineering',
+        ...meta,
+        status: 'wrong',
+        inlineCaption:
+          'Programme & Course Name is missing due to Chapter II, Clause 2.6 of AICTE Approval Process Handbook 2024-27, page 42 (Rule ID APH-2.1)',
+        popover: {
+          title: 'Programme & Course Name is missing',
+          extractedValue: val || '[MISSING]',
+          expectedValue: 'B.Tech — Computer Science & Engineering',
+          why: "Course title is required under Chapter II, Clause 2.6 of 'AICTE Approval Process Handbook 2024-27', page 42, Rule ID APH-2.1 [UNVERIFIED - confirm against APH 2024-27 text].",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.42, Rule APH-2.1 • UNVERIFIED]',
+          corpusRuleId: 'APH-2.1',
+          suggestedFix: 'Specify the approved AICTE programme and course title.',
+        },
+        bbox,
+      };
+    }
+
+    case 'proposedIntake': {
       if (
-        val.toLowerCase().includes('enclave') ||
-        val.toLowerCase().includes('deputation') ||
-        val.toLowerCase().includes('transit zone')
+        val.toUpperCase().includes('PROVISIONAL') ||
+        val.toUpperCase().includes('SYNDICATE')
       ) {
         return {
           key,
-          label: 'Address',
+          label: 'Approved / Proposed Intake',
           extractedValue: val,
-          status: 'needs_review',
-          inlineCaption:
-            'No matching rule found in the reference documents. Requires human review.',
-          bbox,
-        };
-      }
-      const hasPin = /\b\d{6}\b/.test(val);
-      if (hasPin && val.length >= 15) {
-        return {
-          key,
-          label: 'Address',
-          extractedValue: val,
-          status: 'correct',
-          inlineCaption:
-            'Complies with Address Standardization Guidelines, Section 3.1, page 9 (Rule ID ADDR-3.1)',
-          bbox,
-        };
-      }
-      return {
-        key,
-        label: 'Address',
-        extractedValue: val || '[MISSING]',
-        expectedValue: `${val || 'Plot 19, Sector 14, Navi Mumbai'} - 400703`,
-        status: 'wrong',
-        inlineCaption:
-          'Address is missing a mandatory 6-digit postal PIN code due to Section 3.1 of Address Standardization Guidelines, page 9 (Rule ID ADDR-3.1)',
-        popover: {
-          title: 'Address is missing 6-digit PIN code',
-          extractedValue: val || '[MISSING]',
-          expectedValue: 'Plot 19, Sector 14, Vashi, Navi Mumbai, Maharashtra - 400703',
-          why: "Address format is incomplete as per Section 3.1 (Mandatory Postal PIN Code Requirement) of 'Address Standardization Guidelines', page 9, Rule ID ADDR-3.1. Every address must include a valid 6-digit PIN code.",
-          sourceChipLabel:
-            '[Address_Standardization_Guidelines.pdf, p.9, Rule ADDR-3.1]',
-          corpusRuleId: 'ADDR-3.1',
-          suggestedFix: 'Append a valid 6-digit postal PIN code to the address.',
-        },
-        bbox,
-      };
-    }
-
-    case 'applicationNumber': {
-      const validAppNo = /^APP-\d{4}-\d{6}$/.test(val);
-      if (validAppNo) {
-        return {
-          key,
-          label: 'Application Number',
-          extractedValue: val,
-          status: 'correct',
-          inlineCaption:
-            'Complies with Application Submission Guidelines 2024, Section 1.1, page 5 (Rule ID APP-1.1)',
-          bbox,
-        };
-      }
-      return {
-        key,
-        label: 'Application Number',
-        extractedValue: val || '[MISSING]',
-        expectedValue: 'APP-2026-783920',
-        status: 'wrong',
-        inlineCaption:
-          'Application Number is malformed due to Section 1.1 of Application Submission Guidelines 2024, page 5 (Rule ID APP-1.1)',
-        popover: {
-          title: 'Application Number format is invalid',
-          extractedValue: val || '[MISSING]',
-          expectedValue: 'APP-2026-783920',
-          why: "Application Number is invalid as per Section 1.1 (Application Reference Number Structure) of 'Application Submission Guidelines 2024', page 5, Rule ID APP-1.1. Must follow APP-YYYY-NNNNNN.",
-          sourceChipLabel:
-            '[Application_Submission_Guidelines_2024.pdf, p.5, Rule APP-1.1]',
-          corpusRuleId: 'APP-1.1',
-          suggestedFix: 'Format Application Number as APP-2026-NNNNNN.',
-        },
-        bbox,
-      };
-    }
-
-    case 'certificateNumber': {
-      const validCert = /^[A-Z]{2}-?\d{8}$/.test(val);
-      if (validCert) {
-        return {
-          key,
-          label: 'Certificate Number',
-          extractedValue: val,
-          status: 'correct',
-          inlineCaption:
-            'Complies with Certificate Validity Regulations, Section 1.4, page 4 (Rule ID CERT-1.4)',
-          bbox,
-        };
-      }
-      return {
-        key,
-        label: 'Certificate Number',
-        extractedValue: val || '[MISSING]',
-        expectedValue: 'IN20264819',
-        status: 'wrong',
-        inlineCaption:
-          'Certificate Number is missing or malformed due to Section 1.4 of Certificate Validity Regulations, page 4 (Rule ID CERT-1.4)',
-        popover: {
-          title: 'Certificate Number is missing or invalid',
-          extractedValue: val || '[MISSING]',
-          expectedValue: 'IN20264819',
-          why: "Certificate Number is non-compliant as per Section 1.4 (Certificate Serial Number Syntax) of 'Certificate Validity Regulations', page 4, Rule ID CERT-1.4. Must consist of 2 uppercase letters followed by 8 digits.",
-          sourceChipLabel:
-            '[Certificate_Validity_Regulations.pdf, p.4, Rule CERT-1.4]',
-          corpusRuleId: 'CERT-1.4',
-          suggestedFix:
-            'Enter the 2-letter + 8-digit Certificate Number (e.g., IN20264819).',
-        },
-        bbox,
-      };
-    }
-
-    case 'validFrom': {
-      const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(val);
-      if (ddmmyyyy) {
-        return {
-          key,
-          label: 'Valid From',
-          extractedValue: val,
-          status: 'correct',
-          inlineCaption:
-            'Complies with Certificate Validity Regulations, Section 5.1, page 17 (Rule ID CERT-5.1)',
-          bbox,
-        };
-      }
-      return {
-        key,
-        label: 'Valid From',
-        extractedValue: val || '[MISSING]',
-        expectedValue: '16/03/2024',
-        status: 'wrong',
-        inlineCaption:
-          'Valid From is not formatted as DD/MM/YYYY due to Section 5.1 of Certificate Validity Regulations, page 17 (Rule ID CERT-5.1)',
-        popover: {
-          title: 'Valid From date format is invalid',
-          extractedValue: val || '[MISSING]',
-          expectedValue: '16/03/2024',
-          why: "Valid From date is invalid as per Section 5.1 (Certificate Issuance & Valid From Chronology) of 'Certificate Validity Regulations', page 17, Rule ID CERT-5.1.",
-          sourceChipLabel:
-            '[Certificate_Validity_Regulations.pdf, p.17, Rule CERT-5.1]',
-          corpusRuleId: 'CERT-5.1',
-          suggestedFix: 'Enter Valid From date in DD/MM/YYYY format.',
-        },
-        bbox,
-      };
-    }
-
-    case 'validUntil': {
-      if (val.toUpperCase().includes('PROVISIONAL')) {
-        return {
-          key,
-          label: 'Valid Until',
-          extractedValue: val,
+          ...meta,
           status: 'warning',
           inlineCaption:
-            'No matching rule found in the reference documents. Requires human review.',
+            'No matching rule found in the reference documents for conditional Syndicate intake ratification. Requires human review.',
           bbox,
         };
       }
-      const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(val);
-      if (match) {
-        const day = parseInt(match[1], 10);
-        const month = parseInt(match[2], 10);
-        const year = parseInt(match[3], 10);
-        // Verification date is Oct 2026
-        const isFuture =
-          year > 2026 || (year === 2026 && (month > 10 || (month === 10 && day > 27)));
-        if (isFuture) {
-          return {
-            key,
-            label: 'Valid Until',
-            extractedValue: val,
-            status: 'correct',
-            inlineCaption:
-              'Complies with Certificate Validity Regulations, Section 5.3, page 19 (Rule ID CERT-5.3)',
-            bbox,
-          };
-        }
+      const numMatch = /\b(\d+)\b/.exec(val);
+      const seats = numMatch ? parseInt(numMatch[1], 10) : 0;
+      const isMultipleOf60 = seats > 0 && seats % 60 === 0 && seats <= 360;
+      const hasMismatch = val.toLowerCase().includes('mismatch');
+      if (isMultipleOf60 && !hasMismatch) {
+        return {
+          key,
+          label: 'Approved / Proposed Intake',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter II, Clause 2.11, page 49 (Rule ID APH-2.4) [UNVERIFIED]',
+          bbox,
+        };
       }
       return {
         key,
-        label: 'Valid Until',
+        label: 'Approved / Proposed Intake',
         extractedValue: val || '[MISSING]',
-        expectedValue: '15/03/2028',
+        expectedValue: '180 Seats (3 Divisions • Matches Univ. NOC Ref. BTU/2026/408)',
+        ...meta,
         status: 'wrong',
         inlineCaption:
-          'Valid Until is expired at the time of application due to Section 5.3 of Certificate Validity Regulations, page 19 (Rule ID CERT-5.3)',
+          'Approved / Proposed Intake is not aligned with 60-seat division multiples or Affiliating University NOC due to Chapter II, Clause 2.11 of AICTE Approval Process Handbook 2024-27, page 49 (Rule ID APH-2.4)',
         popover: {
-          title: 'Certificate validity has expired',
+          title: 'Intake does not match 60-seat division norm or University NOC',
           extractedValue: val || '[MISSING]',
-          expectedValue: '15/03/2028 (Must be active on verification date)',
-          why: "Certificate validity is non-compliant as per Section 5.3 (Active Validity Window at Submission) of 'Certificate Validity Regulations', page 19, Rule ID CERT-5.3. Certificate validity cannot be expired at the time of application.",
-          sourceChipLabel:
-            '[Certificate_Validity_Regulations.pdf, p.19, Rule CERT-5.3]',
-          corpusRuleId: 'CERT-5.3',
+          expectedValue: '180 Seats (3 Divisions • Matches Univ. NOC Ref. BTU/2026/408)',
+          why: "Proposed Intake is non-compliant as per Chapter II, Clause 2.11 (Cross-Document Intake Consistency) of 'AICTE Approval Process Handbook 2024-27', page 49, Rule ID APH-2.4 [UNVERIFIED - confirm against APH 2024-27 text]. Intake must be a multiple of 60 and match the Affiliating University NOC.",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.49, Rule APH-2.4 • UNVERIFIED]',
+          corpusRuleId: 'APH-2.4',
           suggestedFix:
-            'Provide a renewed certificate with a future Valid Until date (e.g., 15/03/2028).',
+            'Align intake with the sanctioned multiple of 60 seats on the University Affiliation NOC.',
+        },
+        bbox,
+      };
+    }
+
+    case 'builtUpAreaSqm': {
+      const cleanDigits = val.replace(/,/g, '');
+      const numMatch = /(\d+)/.exec(cleanDigits);
+      const areaSqm = numMatch ? parseInt(numMatch[1], 10) : 0;
+      if (areaSqm >= 10000) {
+        return {
+          key,
+          label: 'Certified Built-Up Area (sq.m)',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter III, Clause 3.2, page 64 (Rule ID APH-3.1) [UNVERIFIED]',
+          bbox,
+        };
+      }
+      return {
+        key,
+        label: 'Certified Built-Up Area (sq.m)',
+        extractedValue: val || '[MISSING]',
+        expectedValue: '13,400 sq.m (Instructional + Admin + Amenities Certified)',
+        ...meta,
+        status: 'wrong',
+        inlineCaption:
+          'Certified Built-Up Area (sq.m) is below the normative campus requirement due to Chapter III, Clause 3.2 of AICTE Approval Process Handbook 2024-27, page 64 (Rule ID APH-3.1)',
+        popover: {
+          title: 'Certified Built-Up Area is below normative sq.m threshold',
+          extractedValue: val || '[MISSING]',
+          expectedValue: '13,400 sq.m (Instructional + Admin + Amenities Certified)',
+          why: "Built-up area is non-compliant as per Chapter III, Clause 3.2 (Normative Instructional, Administrative & Amenities Built-Up Area) of 'AICTE Approval Process Handbook 2024-27', page 64, Rule ID APH-3.1 [UNVERIFIED - confirm against APH 2024-27 text].",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.64, Rule APH-3.1 • UNVERIFIED]',
+          corpusRuleId: 'APH-3.1',
+          suggestedFix:
+            'Provide updated Occupancy / Architect Certificate meeting normative sq.m requirements.',
+        },
+        bbox,
+      };
+    }
+
+    case 'landTenureYears': {
+      if (
+        val.toLowerCase().includes('hill council') ||
+        val.toLowerCase().includes('customary') ||
+        val.toLowerCase().includes('transitional')
+      ) {
+        return {
+          key,
+          label: 'Land Ownership / Lease Tenure',
+          extractedValue: val,
+          ...meta,
+          status: 'needs_review',
+          inlineCaption:
+            'No matching rule found in the reference documents for Autonomous Hill Council customary land grant. Requires human review.',
+          bbox,
+        };
+      }
+      const isFreehold = val.toLowerCase().includes('freehold');
+      const yrMatch = /(\d+)\s*year/i.exec(val);
+      const leaseYears = yrMatch ? parseInt(yrMatch[1], 10) : 0;
+      if (isFreehold || leaseYears >= 30) {
+        return {
+          key,
+          label: 'Land Ownership / Lease Tenure',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter III, Clause 4.2, page 85 (Rule ID APH-4.1) [UNVERIFIED]',
+          bbox,
+        };
+      }
+      return {
+        key,
+        label: 'Land Ownership / Lease Tenure',
+        extractedValue: val || '[MISSING]',
+        expectedValue: '35 Years Registered Lease Deed (Contiguous 6.2 Acres)',
+        ...meta,
+        status: 'wrong',
+        inlineCaption:
+          'Land Ownership / Lease Tenure is below the minimum 30-year registered lease requirement due to Chapter III, Clause 4.2 of AICTE Approval Process Handbook 2024-27, page 85 (Rule ID APH-4.1)',
+        popover: {
+          title: 'Land lease tenure is less than 30 years',
+          extractedValue: val || '[MISSING]',
+          expectedValue: '35 Years Registered Lease Deed (Contiguous 6.2 Acres)',
+          why: "Land tenure is non-compliant as per Chapter III, Clause 4.2 (Land Ownership or Minimum 30-Year Registered Lease Norm) of 'AICTE Approval Process Handbook 2024-27', page 85, Rule ID APH-4.1 [UNVERIFIED - confirm against APH 2024-27 text].",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.85, Rule APH-4.1 • UNVERIFIED]',
+          corpusRuleId: 'APH-4.1',
+          suggestedFix:
+            'Submit Freehold title deed or Registered Lease Deed with >= 30 years tenure.',
+        },
+        bbox,
+      };
+    }
+
+    case 'fireNocValidUntil': {
+      const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(val);
+      if (!match) {
+        return {
+          key,
+          label: 'Fire & Life Safety NOC Valid Until',
+          extractedValue: val || '[MISSING]',
+          expectedValue: '15/04/2028',
+          ...meta,
+          status: 'wrong',
+          inlineCaption:
+            'Fire & Life Safety NOC Valid Until is not formatted in DD/MM/YYYY syntax due to Chapter I, Clause 1.12 of AICTE Approval Process Handbook 2024-27, page 26 (Rule ID APH-1.5)',
+          popover: {
+            title: 'Fire Safety NOC date format is non-compliant',
+            extractedValue: val || '[MISSING]',
+            expectedValue: '15/04/2028',
+            why: "Statutory date format is invalid as per Chapter I, Clause 1.12 (Standardized Statutory Date Format DD/MM/YYYY) of 'AICTE Approval Process Handbook 2024-27', page 26, Rule ID APH-1.5 [UNVERIFIED - confirm against APH 2024-27 text]. Dates must use DD/MM/YYYY with forward slashes.",
+            sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.26, Rule APH-1.5 • UNVERIFIED]',
+            corpusRuleId: 'APH-1.5',
+            suggestedFix: 'Convert Fire NOC expiry date to DD/MM/YYYY format (e.g., 15/04/2028).',
+          },
+          bbox,
+        };
+      }
+
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10);
+      const year = parseInt(match[3], 10);
+      // Scrutiny verification date is Oct 2026
+      const isFuture =
+        year > 2026 || (year === 2026 && (month > 10 || (month === 10 && day > 28)));
+      if (isFuture) {
+        return {
+          key,
+          label: 'Fire & Life Safety NOC Valid Until',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Chapter V, Clause 5.3, page 102 (Rule ID APH-5.1) [UNVERIFIED]',
+          bbox,
+        };
+      }
+
+      return {
+        key,
+        label: 'Fire & Life Safety NOC Valid Until',
+        extractedValue: val,
+        expectedValue: '15/03/2028 (Must be active on scrutiny verification date)',
+        ...meta,
+        status: 'wrong',
+        inlineCaption:
+          'Fire & Life Safety NOC Valid Until is expired at the time of scrutiny due to Chapter V, Clause 5.3 of AICTE Approval Process Handbook 2024-27, page 102 (Rule ID APH-5.1)',
+        popover: {
+          title: 'Fire & Life Safety NOC has expired',
+          extractedValue: val,
+          expectedValue: '15/03/2028 (Must be active on scrutiny verification date)',
+          why: "Fire Safety NOC validity is non-compliant as per Chapter V, Clause 5.3 (Mandatory Active Fire & Life Safety NOC Validity Window) of 'AICTE Approval Process Handbook 2024-27', page 102, Rule ID APH-5.1 [UNVERIFIED - confirm against APH 2024-27 text]. The Fire NOC cannot be expired at the time of scrutiny.",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.102, Rule APH-5.1 • UNVERIFIED]',
+          corpusRuleId: 'APH-5.1',
+          suggestedFix:
+            'Enter the renewed State Fire Authority NOC expiry date (e.g., 15/03/2028).',
+        },
+        bbox,
+      };
+    }
+
+    case 'facultyStudentRatio': {
+      // Parse "1:XX" ratio from string like "24 Faculty — FSR 1:18" or faculty count >= 24
+      const ratioMatch = /1\s*:\s*(\d+(\.\d+)?)/.exec(val);
+      const facCountMatch = /^(\d+)\s*faculty/i.exec(val);
+      const denominator = ratioMatch ? parseFloat(ratioMatch[1]) : 999;
+      const facCount = facCountMatch ? parseInt(facCountMatch[1], 10) : 0;
+      if ((denominator > 0 && denominator <= 20) || (facCount >= 24 && !ratioMatch)) {
+        return {
+          key,
+          label: 'Faculty Count & FSR',
+          extractedValue: val,
+          ...meta,
+          status: 'correct',
+          inlineCaption:
+            'Complies with AICTE Approval Process Handbook 2024-27, Annexure-5, Clause 6.2, page 119 (Rule ID APH-6.1) [UNVERIFIED]',
+          bbox,
+        };
+      }
+      return {
+        key,
+        label: 'Faculty Count & FSR',
+        extractedValue: val || '[MISSING]',
+        expectedValue: '24 Faculty — FSR 1:18 (Cadre 1:2:6 Verified)',
+        ...meta,
+        status: 'wrong',
+        inlineCaption:
+          'Faculty Count & FSR is worse than the mandatory 1:20 ceiling due to Annexure-5, Clause 6.2 of AICTE Approval Process Handbook 2024-27, page 119 (Rule ID APH-6.1)',
+        popover: {
+          title: 'Faculty-Student Ratio (FSR) violates 1:20 norm',
+          extractedValue: val || '[MISSING]',
+          expectedValue: '24 Faculty — FSR 1:18 (Cadre 1:2:6 Verified)',
+          why: "Faculty-Student Ratio is non-compliant as per Annexure-5, Clause 6.2 (Mandatory Faculty-Student Ratio FSR 1:20 Ceiling) of 'AICTE Approval Process Handbook 2024-27', page 119, Rule ID APH-6.1 [UNVERIFIED - confirm against APH 2024-27 text]. UG Engineering programmes must maintain FSR no worse than 1:20.",
+          sourceChipLabel: '[AICTE_APH_2024_27.pdf, p.119, Rule APH-6.1 • UNVERIFIED]',
+          corpusRuleId: 'APH-6.1',
+          suggestedFix:
+            'Update certified regular faculty count meeting FSR <= 1:20 (e.g., 24 Faculty — FSR 1:18).',
         },
         bbox,
       };
@@ -391,61 +614,79 @@ export function buildInitialScenarioFields(
 ): FieldValidationDetail[] {
   const rawByScenario: Record<ScenarioId, Record<FieldKey, string>> = {
     A: {
-      applicantName: 'ANANYA SHARMA',
-      dateOfBirth: '14/08/1999',
-      address: '42 Residency Road, Ashok Nagar, Bengaluru, Karnataka - 560001',
-      applicationNumber: 'APP-2026-409182',
-      certificateNumber: 'IN20258841',
-      validFrom: '01/12/2024',
-      validUntil: '30/11/2028',
+      institutionName: 'SAHYADRI INSTITUTE OF TECHNOLOGY AND MANAGEMENT (SYNTHETIC)',
+      permanentInstituteId: '1-4829104',
+      applicationId: '1-44642983101',
+      applicationType: 'Extension of Approval (EoA 2026-27)',
+      courseName: 'B.Tech — Computer Science & Engineering',
+      proposedIntake: '180 Seats (3 Divisions • Matches Univ. NOC Ref. VTU/2026/114)',
+      builtUpAreaSqm: '14,850 sq.m (Instructional + Admin + Amenities Certified)',
+      landTenureYears: 'Freehold — Trust Owned (Contiguous 7.5 Acres, NA Converted)',
+      fireNocValidUntil: '30/06/2028',
+      facultyStudentRatio: '36 Faculty (FSR 1:15 • Cadre 1:2:6 Verified)',
     },
     B: {
-      applicantName: 'VIKRAM ADITYA RAO',
-      dateOfBirth: '1998-05-14',
-      address: '18 Civil Lines, MG Marg, Prayagraj, Uttar Pradesh - 211001',
-      applicationNumber: 'APP-2026-512094',
-      certificateNumber: '[MISSING]',
-      validFrom: '10/01/2025',
-      validUntil: '09/01/2029',
+      institutionName: 'ARAVALLI COLLEGE OF ENGINEERING AND RESEARCH (SYNTHETIC)',
+      permanentInstituteId: '[MISSING]',
+      applicationId: '1-44642983192',
+      applicationType: 'Increase in Intake (2026-27)',
+      courseName: 'B.Tech — Electronics & Communication Engineering',
+      proposedIntake: '120 Seats (2 Divisions • Matches Univ. NOC Ref. RTU/2026/309)',
+      builtUpAreaSqm: '12,600 sq.m (Architect & OC Certified)',
+      landTenureYears: '35 Years Registered Lease Deed (Contiguous 6.0 Acres)',
+      fireNocValidUntil: '2028-04-15',
+      facultyStudentRatio: '24 Faculty (FSR 1:18 • Cadre 1:2:6 Verified)',
     },
     C: {
-      applicantName: 'SURESH MENON',
-      dateOfBirth: '03/11/1995',
-      address: '7B Marine Drive, Ernakulam, Kochi, Kerala - 682011',
-      applicationNumber: 'APP-2026-619305',
-      certificateNumber: 'KL20247719',
-      validFrom: '15/06/2024',
-      validUntil: '14/06/2028',
+      institutionName: 'DAKSHIN BHARAT INSTITUTE OF INFORMATION TECHNOLOGY (SYNTHETIC)',
+      permanentInstituteId: '1-6193058',
+      applicationId: '1-44642983245',
+      applicationType: 'Extension of Approval (EoA 2026-27)',
+      courseName: 'B.Tech — Artificial Intelligence & Data Science',
+      proposedIntake: '180 Seats (3 Divisions • Matches Univ. NOC Ref. KTU/2026/512)',
+      builtUpAreaSqm: '15,200 sq.m (Municipal OC Certified)',
+      landTenureYears: 'Freehold — Society Owned (Contiguous 8.1 Acres)',
+      fireNocValidUntil: '14/06/2028',
+      facultyStudentRatio: '32 Faculty (FSR 1:16 • Cadre 1:2:6 Verified)',
     },
     D: {
-      applicantName: 'RAHULKUMAR',
-      dateOfBirth: '22/07/1997',
-      address: 'Plot 19, Sector 14, Vashi, Navi Mumbai, Maharashtra - 400703',
-      applicationNumber: 'APP-2026-783920',
-      certificateNumber: 'MH20219042',
-      validFrom: '16/03/2021',
-      validUntil: '15/03/2024',
+      institutionName: 'NALANDA VISHWA ENGINEERING ACADEMY (SYNTHETIC)',
+      permanentInstituteId: '1-5592509',
+      applicationId: '1-44642983297',
+      applicationType: 'Extension of Approval (EoA 2026-27)',
+      courseName: 'B.Tech — Computer Science & Engineering',
+      proposedIntake: '180 Seats (3 Divisions • Matches Univ. NOC Ref. BTU/2026/408)',
+      builtUpAreaSqm: '13,400 sq.m (Instructional + Admin + Amenities Certified)',
+      landTenureYears: '35 Years Registered Lease Deed (Contiguous 6.2 Acres)',
+      fireNocValidUntil: '15/03/2024',
+      facultyStudentRatio: '18 Faculty (FSR 1:25)',
     },
     E: {
-      applicantName: 'TENZIN DORJI',
-      dateOfBirth: '09/04/1996',
-      address:
-        'Unit 4B, Indo-Bhutan Border Liaison Enclave, Phuentsholing Transit Zone (Special Deputation)',
-      applicationNumber: 'APP-2026-890411',
-      certificateNumber: 'BT20251108',
-      validFrom: '01/09/2025',
-      validUntil: 'PROVISIONAL-90D-EXTENSION',
+      institutionName: 'BRAHMAPUTRA FRONTIER POLYTECHNIC AND TECH CAMPUS (SYNTHETIC)',
+      permanentInstituteId: '1-8904112',
+      applicationId: '1-44642983388',
+      applicationType: 'EoA with Special Regional Provision (2026-27)',
+      courseName: 'B.Tech — Civil & Hill Infrastructure Engineering',
+      proposedIntake: 'PROVISIONAL-120-SEATS (Subject to University Syndicate Ratification)',
+      builtUpAreaSqm: '11,900 sq.m (PWD Structural & Area Certified)',
+      landTenureYears:
+        'Autonomous Hill Council Customary Land Grant — 90-Day Transitional Conversion',
+      fireNocValidUntil: '31/12/2027',
+      facultyStudentRatio: '22 Faculty (FSR 1:18 • Cadre 1:2:6 Verified)',
     },
   };
 
   const orderedKeys: FieldKey[] = [
-    'applicantName',
-    'dateOfBirth',
-    'address',
-    'applicationNumber',
-    'certificateNumber',
-    'validFrom',
-    'validUntil',
+    'institutionName',
+    'permanentInstituteId',
+    'applicationId',
+    'applicationType',
+    'courseName',
+    'proposedIntake',
+    'builtUpAreaSqm',
+    'landTenureYears',
+    'fireNocValidUntil',
+    'facultyStudentRatio',
   ];
 
   const raw = rawByScenario[scenarioId];
@@ -469,7 +710,7 @@ export async function ocrTool(scenarioId: ScenarioId): Promise<{
 
 /**
  * 2. templateTool (SIMULATED)
- * Checks structural template compliance (mandatory fields present + DD/MM/YYYY structural dates + Cert No syntax).
+ * Checks mandatory dossier fields per application type + portal ID formats + DD/MM/YYYY date format.
  */
 export async function templateTool(
   scenarioId: ScenarioId,
@@ -483,21 +724,30 @@ export async function templateTool(
   const latencyMs = 680 + Math.floor(Math.random() * 200);
   await delay(latencyMs);
 
-  const templateKeys: FieldKey[] = [
-    'certificateNumber',
-    'dateOfBirth',
-    'applicationNumber',
-  ];
-  const failedFields = fields
-    .filter((f) => templateKeys.includes(f.key) && f.status === 'wrong')
-    .map((f) => f.key);
+  const failedFields: FieldKey[] = [];
+  for (const f of fields) {
+    if (
+      (f.key === 'permanentInstituteId' ||
+        f.key === 'applicationId' ||
+        f.key === 'applicationType') &&
+      f.status === 'wrong'
+    ) {
+      failedFields.push(f.key);
+    }
+    if (
+      f.key === 'fireNocValidUntil' &&
+      !/^(\d{2})\/(\d{2})\/(\d{4})$/.test(f.extractedValue.trim())
+    ) {
+      failedFields.push(f.key);
+    }
+  }
 
   if (scenarioId === 'B' || failedFields.length > 0) {
     return {
       passed: false,
       failedFields,
       summary:
-        'TEMPLATE VALIDATION FAILED: Mandatory schema gate halted pipeline due to missing Certificate Number (Rule CERT-1.4) and non-standard Date of Birth syntax (Rule DOB-2.1). Downstream stages skipped.',
+        'TEMPLATE VALIDATION FAILED: Mandatory AICTE dossier gate halted pipeline due to missing Permanent Institute ID (Rule APH-1.1) and non-DD/MM/YYYY Fire NOC date format (Rule APH-1.5). Downstream stages skipped.',
       latencyMs,
     };
   }
@@ -506,13 +756,13 @@ export async function templateTool(
     passed: true,
     failedFields: [],
     summary:
-      'Form A-1 layout anchor points, mandatory field boxes, and date/serial structural syntax verified.',
+      'All 9 mandatory AICTE Scrutiny Dossier annexures, portal IDs (1-NNNNNNN), and DD/MM/YYYY date formats verified.',
     latencyMs,
   };
 }
 
 /**
- * 3. authenticityTool (SIMULATED GAN-based risk indicator screening)
+ * 3. authenticityTool (SIMULATED GAN/ELA document screening + duplicate photo hash + Issuer Verification row)
  */
 export async function authenticityTool(scenarioId: ScenarioId): Promise<{
   result: AuthenticityResult;
@@ -530,30 +780,47 @@ export async function authenticityTool(scenarioId: ScenarioId): Promise<{
         riskLevel: 'Elevated Risk Indicator',
         riskScoreNormalized: '0.78 (Elevated Risk Indicator)',
         llmExplanation:
-          'Simulated GAN discriminator patch analysis identified localized high-frequency compression residuals along the applicant portrait border (top-right quadrant) and minor substrate luminance discontinuity around the embossed seal overlap. Note: GAN-based analysis is a risk indicator, not proof of forgery, and is different from cryptographic signature validation. Human officer review is required.',
+          'Simulated GAN/ELA document screening identified localized high-frequency compression residuals around the "Valid Until" date box and issuing seal on Annexure-4 (Fire Safety NOC), alongside a perceptual hash collision (pHash Δ=2) indicating a reused Computer Lab photograph in Annexure-8. Note: Visual and photo-hash screening is a risk indicator, not proof of forgery, and does not replace cryptographic or issuing-authority verification. Scrutiny Officer review is required.',
         indicators: [
           {
-            id: 'ind-photo',
-            label: 'Portrait Patch Boundary Residual',
+            id: 'ind-noc-date',
+            label: 'Fire NOC Date & Stamp Region Residual (Annexure-4)',
             finding:
-              'Localized spatial frequency shift detected around applicant photograph frame (Rule AUTH-2.2 risk indicator).',
+              'Localized luminance & ELA compression shift detected around "Valid Until: 14/06/2028" date box and issuing seal (Rule AUTH-2.2 risk indicator).',
             severity: 'high',
-            regionBbox: { top: 31, left: 66, width: 25, height: 24 },
+            regionBbox: { top: 68, left: 6, width: 42, height: 9 },
           },
           {
-            id: 'ind-seal',
-            label: 'Embossed Stamp Edge Continuity',
+            id: 'ind-lab-photo',
+            label: 'Geotagged Lab Photo Perceptual Hash (Annexure-8)',
             finding:
-              'Secondary compression boundary near lower-right emblem overlap; flagged as visual risk indicator for manual inspection.',
+              'Duplicate image block (pHash distance = 2) detected between AI/DS Lab-2 photo and prior year submission (Rule AUTH-3.1 risk indicator).',
             severity: 'elevated',
-            regionBbox: { top: 83, left: 64, width: 26, height: 12 },
+            regionBbox: { top: 80, left: 52, width: 42, height: 12 },
           },
           {
             id: 'ind-font',
-            label: 'Typography & Baseline Uniformity',
+            label: 'Building Plan & Land Deed Typography (Annexures 2 & 3)',
             finding:
-              'Glyph kerning and baseline horizontal alignment across text fields remain consistent with Form A-1 reference.',
+              'Glyph kerning and scan substrate across Land Deed and Occupancy Certificate remain uniform.',
             severity: 'low',
+          },
+        ],
+        issuerVerification: [
+          {
+            source: 'State Fire Service Portal / DigiLocker (SIMULATED)',
+            documentChecked: 'Annexure-4: Fire Safety NOC #KL-FRS-2024-881',
+            referenceId: 'DL-FIRE-KL-88109',
+            status: 'MISMATCH / MANUAL CHECK (SIMULATED)',
+            detail:
+              'Portal expiry date lookup returned 14/06/2025 vs. scanned document 14/06/2028 — requires Scrutiny Officer verification.',
+          },
+          {
+            source: 'Affiliating University Registry (SIMULATED)',
+            documentChecked: 'Annexure-5: University Affiliation NOC (Format-2)',
+            referenceId: 'KTU/AFF/2026/512',
+            status: 'VERIFIED (SIMULATED)',
+            detail: 'Sanctioned intake (180 seats) matches university registry snapshot.',
           },
         ],
       },
@@ -568,21 +835,37 @@ export async function authenticityTool(scenarioId: ScenarioId): Promise<{
       riskLevel: 'Low Risk Indicator',
       riskScoreNormalized: '0.12 (Low Risk Indicator)',
       llmExplanation:
-        'Simulated GAN visual screening found uniform substrate noise texture, consistent portrait border blending, and aligned glyph baselines across all extracted regions. Note: GAN-based analysis is a risk indicator, not proof of forgery, and is different from cryptographic signature validation.',
+        'Simulated GAN/ELA visual screening found uniform substrate compression across all statutory certificates (Fire NOC, Building Occupancy Certificate, Lease Deed) and unique perceptual hashes across all geotagged laboratory photos in Annexure-8. Note: Visual screening is a risk indicator, not proof of forgery, and is separate from issuer portal verification.',
       indicators: [
         {
-          id: 'ind-photo-ok',
-          label: 'Portrait Patch Boundary Residual',
+          id: 'ind-noc-ok',
+          label: 'Fire NOC & Seal Substrate Continuity (Annexure-4)',
           finding:
-            'Uniform compression noise across photograph boundary and surrounding paper background.',
+            'Uniform compression noise and continuous glyph luminance across date and official stamp regions.',
           severity: 'low',
         },
         {
-          id: 'ind-font-ok',
-          label: 'Typography & Baseline Uniformity',
+          id: 'ind-photo-ok',
+          label: 'Geotagged Lab & Building Photo Hashing (Annexure-8)',
           finding:
-            'Consistent glyph kerning and baseline alignment across all 7 form fields.',
+            'No duplicate or reused perceptual image hashes detected across submitted campus photographs.',
           severity: 'low',
+        },
+      ],
+      issuerVerification: [
+        {
+          source: 'State Fire Authority / DigiLocker Gateway (SIMULATED)',
+          documentChecked: 'Annexure-4: Fire & Life Safety NOC',
+          referenceId: 'DL-FIRE-2026-VERIFIED',
+          status: 'VERIFIED (SIMULATED)',
+          detail: 'Certificate serial and issuing authority signature metadata matched.',
+        },
+        {
+          source: 'Affiliating University e-Affiliation Portal (SIMULATED)',
+          documentChecked: 'Annexure-5: University Consent of Affiliation (Format-2)',
+          referenceId: 'UNIV-NOC-2026-OK',
+          status: 'VERIFIED (SIMULATED)',
+          detail: 'Course name and division intake match university dispatch record.',
         },
       ],
     },
@@ -618,15 +901,17 @@ export async function complianceTool(
     id: `det-${f.key}`,
     fieldLabel: f.label,
     checkDescription:
-      f.key === 'applicantName'
-        ? 'Uppercase multi-token name with whitespace separator'
-        : f.key === 'validUntil'
-        ? 'Valid Until date > current verification date (Oct 2026)'
-        : f.key === 'address'
-        ? 'Contains 6-digit domestic PIN code and >= 15 chars'
-        : f.key === 'certificateNumber'
-        ? 'Regex ^[A-Z]{2}-?\\d{8}$ mandatory check'
-        : 'Format & mandatory presence check',
+      f.key === 'facultyStudentRatio'
+        ? 'Deterministic FSR check: Faculty-Student Ratio <= 1:20 & Cadre 1:2:6 (APH-6.1)'
+        : f.key === 'fireNocValidUntil'
+        ? 'Deterministic date check: Fire NOC Valid Until > Scrutiny Date (Oct 2026) (APH-5.1)'
+        : f.key === 'builtUpAreaSqm'
+        ? 'Deterministic area check: Certified built-up area >= 10,000 sq.m norm (APH-3.1)'
+        : f.key === 'landTenureYears'
+        ? 'Deterministic tenure check: Freehold or Registered Lease >= 30 years (APH-4.1)'
+        : f.key === 'proposedIntake'
+        ? 'Cross-document check: Multiple of 60 seats & matches University NOC (APH-2.4)'
+        : 'Mandatory portal identifier & APH schema check',
     passed: f.status === 'correct',
     detail: f.inlineCaption,
   }));
@@ -697,14 +982,14 @@ export async function llmExplainTool(
 
   if (wrongFields.length > 0) {
     const reasons = wrongFields.map((f) => `${f.label} (${f.extractedValue})`).join(', ');
-    return `Combined deterministic validation and retrieved regulatory text indicate non-compliance on ${wrongFields.length} field(s): ${reasons}. Vector similarity retrieved relevant clauses (APP-4.2, CERT-5.3), and rule evaluation confirmed violations requiring applicant correction or inline officer remediation.`;
+    return `Combined deterministic rule checks and retrieved AICTE APH 2024-27 clauses indicate non-compliance on ${wrongFields.length} dossier parameter(s): ${reasons}. Vector similarity retrieved relevant handbook clauses (APH-6.1, APH-5.1, APH-2.4), and deterministic evaluation confirmed deficiencies requiring institutional rectification or inline Scrutiny Officer re-verification.`;
   }
 
   if (reviewFields.length > 0 || scenarioId === 'E') {
-    return `Semantic retrieval against the 20-document reference corpus yielded no definitive rule governing cross-border deputation enclave addresses or 90-day provisional extensions (Rule AUD-2.5). Automated decision withheld; escalated to human reviewer.`;
+    return `Semantic retrieval against the 20-entry AICTE APH 2024-27 corpus yielded no deterministic rule governing Autonomous Hill Council customary land grants or conditional University Syndicate intake ratifications (Rules APH-7.2, AUD-2.5). Automated decision withheld; escalated to Scrutiny / Standing Hearing Committee (SHC) Officer.`;
   }
 
-  return `All 7 extracted fields satisfy deterministic syntax checks and align with the top-3 retrieved regulatory guidelines (APP-4.2, CERT-5.3, ADDR-3.1). Application is verified within the scope of checks performed.`;
+  return `All ${fields.length} extracted dossier fields satisfy deterministic APH norms (FSR <= 1:20, active Fire Safety NOC, certified built-up area, land tenure, and cross-document university intake consistency) and align with retrieved clauses (APH-6.1, APH-5.1, APH-3.1). Dossier is verified within the scope of checks performed.`;
 }
 
 /**
@@ -713,7 +998,7 @@ export async function llmExplainTool(
 export async function dbTool(
   action: 'insert' | 'update',
   run: VerificationRun,
-  auditNote = 'Automated pipeline completion'
+  auditNote = 'Automated scrutiny pipeline completion'
 ): Promise<VerificationRun> {
   if (action === 'insert') {
     return pgInsertVerificationRun(run);

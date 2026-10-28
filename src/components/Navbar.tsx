@@ -4,7 +4,6 @@ import {
   GitBranch,
   FileCheck2,
   ClipboardList,
-  Network,
   History,
   ShieldCheck,
 } from 'lucide-react';
@@ -20,22 +19,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectScreen,
 }) => {
   const navItems: { id: ScreenId; label: string; icon: React.ReactNode }[] = [
-    { id: 'upload', label: 'Upload', icon: <Upload className="w-4 h-4" /> },
-    { id: 'pipeline', label: 'Pipeline', icon: <GitBranch className="w-4 h-4" /> },
+    { id: 'upload', label: 'Upload Dossier', icon: <Upload className="w-4 h-4" /> },
+    { id: 'pipeline', label: 'AI Scrutiny', icon: <GitBranch className="w-4 h-4" /> },
     {
       id: 'review',
-      label: 'Review',
+      label: 'Officer Review',
       icon: <FileCheck2 className="w-4 h-4" />,
     },
     {
       id: 'report',
-      label: 'Report',
+      label: 'Final Report',
       icon: <ClipboardList className="w-4 h-4" />,
-    },
-    {
-      id: 'architecture',
-      label: 'Architecture',
-      icon: <Network className="w-4 h-4" />,
     },
     { id: 'history', label: 'History', icon: <History className="w-4 h-4" /> },
   ];

@@ -2,11 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   FileText,
-  UserCheck,
+  Building2,
   AlertTriangle,
   CheckCircle2,
   Scan,
   Stamp,
+  Camera,
 } from 'lucide-react';
 import {
   AuthenticityResult,
@@ -14,6 +15,7 @@ import {
   FieldValidationDetail,
   ScenarioId,
 } from '../types';
+import { DOSSIER_DOCUMENT_TYPES } from '../mock/tools';
 
 interface DocumentSpecimenProps {
   fileName: string;
@@ -36,13 +38,9 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
   authenticityResult,
   showBoundingBoxes = true,
 }) => {
-  const getField = (key: FieldKey) => fields.find((f) => f.key === key);
-
-  const renderFieldBox = (key: FieldKey, label: string, fallbackVal: string) => {
-    const f = getField(key);
-    const val = f ? f.extractedValue : fallbackVal;
-    const status = f?.status || 'correct';
-    const isActive = highlightedField === key;
+  const renderFieldBox = (f: FieldValidationDetail, idx: number) => {
+    const status = f.status || 'correct';
+    const isActive = highlightedField === f.key;
 
     const boxColor = !showBoundingBoxes
       ? 'border-slate-300 bg-slate-50/70'
@@ -56,52 +54,64 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
 
     return (
       <div
-        key={key}
-        onMouseEnter={() => onSelectField?.(key)}
+        key={f.key}
+        onMouseEnter={() => onSelectField?.(f.key)}
         onMouseLeave={() => onSelectField?.(null)}
-        onClick={() => onSelectField?.(key)}
+        onClick={() => onSelectField?.(f.key)}
         className={`relative rounded-lg border-2 p-2.5 transition-all cursor-pointer ${boxColor} ${
           isActive ? 'ring-2 ring-[#0B1F3A] scale-[1.01] shadow-md z-10' : ''
-        }`}
+        } ${idx === 0 || idx === 7 ? 'sm:col-span-2' : ''}`}
       >
-        <div className="flex items-center justify-between gap-1 mb-0.5">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            {label}
+        <div className="flex items-center justify-between gap-1 mb-0.5 flex-wrap">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+            {idx + 1}. {f.label}
           </span>
-          {showBoundingBoxes && f && (
-            <span
-              className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
-                status === 'correct'
-                  ? 'bg-[#16A34A] text-white'
+          <div className="flex items-center gap-1">
+            {f.page && (
+              <span className="text-[9px] font-mono text-slate-500 bg-white/80 px-1 rounded border border-slate-200">
+                p.{f.page} • {f.confidence || '98%'}
+              </span>
+            )}
+            {showBoundingBoxes && (
+              <span
+                className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                  status === 'correct'
+                    ? 'bg-[#16A34A] text-white'
+                    : status === 'wrong'
+                    ? 'bg-[#DC2626] text-white'
+                    : status === 'warning'
+                    ? 'bg-[#F59E0B] text-white'
+                    : 'bg-[#6366F1] text-white'
+                }`}
+              >
+                {status === 'correct'
+                  ? 'OK'
                   : status === 'wrong'
-                  ? 'bg-[#DC2626] text-white'
-                  : status === 'warning'
-                  ? 'bg-[#F59E0B] text-white'
-                  : 'bg-[#6366F1] text-white'
-              }`}
-            >
-              {status === 'correct'
-                ? 'OK'
-                : status === 'wrong'
-                ? 'RULE VIOLATION'
-                : 'REVIEW'}
-            </span>
-          )}
+                  ? 'DEFICIENCY'
+                  : 'REVIEW'}
+              </span>
+            )}
+          </div>
         </div>
         <div
-          className={`font-mono text-xs sm:text-sm font-bold break-words ${
+          className={`font-mono text-xs font-bold break-words ${
             status === 'wrong' && showBoundingBoxes
               ? 'text-red-900'
               : 'text-slate-900'
           }`}
         >
-          {val}
+          {f.extractedValue}
         </div>
+        {f.sourceDoc && (
+          <div className="text-[10px] text-slate-500 mt-0.5 truncate">
+            Source: {f.sourceDoc}
+          </div>
+        )}
       </div>
     );
   };
 
-  const photoFlagged =
+  const forensicFlagged =
     scenarioId === 'C' || (authenticityResult && !authenticityResult.passed);
 
   return (
@@ -114,16 +124,21 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
             {fileName}
           </span>
         </div>
-        {isScanning && (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#14B8A6] animate-pulse">
-            <Scan className="w-3.5 h-3.5" />
-            OCR Scanning...
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            SYNTHETIC DEMO DATA
           </span>
-        )}
+          {isScanning && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#14B8A6] animate-pulse">
+              <Scan className="w-3.5 h-3.5" />
+              OCR Scanning...
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Simulated Paper Document Page */}
-      <div className="relative bg-white rounded-xl border-2 border-slate-300 shadow-inner p-5 sm:p-6 text-slate-900 overflow-hidden">
+      {/* Simulated AICTE Consolidated Scrutiny Dossier Sheet */}
+      <div className="relative bg-white rounded-xl border-2 border-slate-300 shadow-inner p-4 sm:p-5 text-slate-900 overflow-hidden">
         {/* Animated OCR Laser Scan Line */}
         {isScanning && (
           <motion.div
@@ -134,116 +149,128 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
           />
         )}
 
-        {/* Document Header (No government logos per instructions) */}
-        <div className="border-b-2 border-[#0B1F3A] pb-3 mb-4 flex items-start justify-between gap-3">
+        {/* Dossier Header */}
+        <div className="border-b-2 border-[#0B1F3A] pb-3 mb-3 flex items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-[#0B1F3A] text-white">
-                FORM A-1 • STATUTORY COMPLIANCE DOSSIER
+                AICTE SCRUTINY / EVC DOSSIER • APH 2024–27
               </span>
-              <span className="text-[10px] font-mono text-slate-500">
-                REV 2024.4
+              <span className="text-[10px] font-mono font-semibold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                SYNTHETIC SPECIMEN
               </span>
             </div>
-            <h4 className="font-bold text-sm sm:text-base text-[#0B1F3A] mt-1.5">
-              APPLICATION &amp; REGULATORY COMPLIANCE CERTIFICATE
+            <h4 className="font-bold text-sm sm:text-base text-[#0B1F3A] mt-1.5 flex items-center gap-1.5">
+              <Building2 className="w-4 h-4 text-[#14B8A6] shrink-0" />
+              <span>INSTITUTION APPROVAL &amp; ANNEXURE COMPLIANCE SUMMARY</span>
             </h4>
             <p className="text-[11px] text-slate-500">
-              Standardized Verification Dossier — Subject to Template, Authenticity &amp;
-              Corpus Rules
+              Consolidated Part-I / Part-II Dossier &amp; Annexures 1–9 — Subject to
+              Template, Forensic &amp; APH 2024-27 Verification
             </p>
           </div>
           <div className="text-right font-mono text-[10px] text-slate-500 shrink-0">
-            <div>DOC-TYPE: FORM-A1</div>
-            <div>SCHEMA: v2.4</div>
+            <div>ANNEXURES: 1–9</div>
+            <div>CORPUS: APH 24-27</div>
           </div>
         </div>
 
-        {/* Row 1: Application Number & Certificate Number */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-          {renderFieldBox(
-            'applicationNumber',
-            '1. Application Number',
-            'APP-2026-783920'
-          )}
-          {renderFieldBox(
-            'certificateNumber',
-            '2. Certificate Number',
-            'MH20219042'
-          )}
+        {/* Attached Dossier Document Types Strip */}
+        <div className="mb-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+            Bundled Dossier Document Types (9 Annexures Indexed):
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {DOSSIER_DOCUMENT_TYPES.map((doc) => (
+              <span
+                key={doc}
+                className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-700"
+              >
+                {doc.split(':')[0]}: {doc.split(':')[1]?.trim()}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Row 2: Left (Applicant Name + DOB) | Right (Applicant Portrait Box) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-          <div className="sm:col-span-2 space-y-3">
-            {renderFieldBox('applicantName', '3. Applicant Name', 'RAHULKUMAR')}
-            {renderFieldBox('dateOfBirth', '4. Date of Birth', '22/07/1997')}
-          </div>
+        {/* Data-Driven Field Boxes (renders all fields dynamically from run.fields) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">
+          {fields.map((f, idx) => renderFieldBox(f, idx))}
+        </div>
 
-          {/* Portrait Region with GAN Risk Indicator Highlight when applicable */}
+        {/* Forensic Inspection Regions: Left = Fire NOC Stamp/Date Region | Right = Geotagged Lab Photos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-dashed border-slate-300">
           <div
-            className={`relative rounded-xl border-2 p-3 flex flex-col items-center justify-center text-center transition-all ${
-              photoFlagged
-                ? 'border-[#F59E0B] bg-amber-50/90 ring-4 ring-amber-400/30'
+            className={`rounded-xl border-2 p-2.5 flex items-center justify-between gap-2 ${
+              forensicFlagged
+                ? 'border-[#F59E0B] bg-amber-50/90 ring-2 ring-amber-400/30'
                 : 'border-slate-300 bg-slate-50'
             }`}
           >
-            <div
-              className={`w-14 h-14 rounded-full flex items-center justify-center mb-1.5 border ${
-                photoFlagged
-                  ? 'bg-amber-200/70 border-amber-500 text-amber-900'
-                  : 'bg-slate-200 border-slate-300 text-slate-600'
-              }`}
-            >
-              <UserCheck className="w-7 h-7" />
-            </div>
-            <span className="text-[10px] font-mono font-bold uppercase text-slate-600">
-              Applicant Portrait
-            </span>
-            {photoFlagged ? (
-              <div className="mt-1.5 px-2 py-1 rounded bg-amber-600 text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
-                <AlertTriangle className="w-3 h-3 shrink-0" />
-                <span>GAN Risk Indicator (0.78)</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Stamp
+                className={`w-5 h-5 shrink-0 ${
+                  forensicFlagged ? 'text-amber-700' : 'text-slate-600'
+                }`}
+              />
+              <div className="min-w-0">
+                <div className="text-[10px] font-mono font-bold uppercase text-slate-700 truncate">
+                  Annexure-4 Stamp &amp; Date Region
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  {forensicFlagged
+                    ? 'ELA date-box splice residual flagged'
+                    : 'Substrate & seal compression uniform'}
+                </div>
               </div>
+            </div>
+            {forensicFlagged ? (
+              <span className="px-2 py-0.5 rounded bg-amber-600 text-white text-[9px] font-mono font-bold shrink-0 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                RISK 0.78
+              </span>
             ) : (
-              <span className="mt-1 text-[10px] text-emerald-700 font-medium flex items-center gap-1">
+              <span className="text-[10px] font-mono text-emerald-700 font-semibold shrink-0 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
-                Patch Uniform (0.12)
+                0.12 OK
               </span>
             )}
           </div>
-        </div>
 
-        {/* Row 3: Address */}
-        <div className="mb-3">
-          {renderFieldBox(
-            'address',
-            '5. Registered Postal Address (6-Digit PIN Mandatory)',
-            'Plot 19, Sector 14, Vashi, Navi Mumbai, Maharashtra - 400703'
-          )}
-        </div>
-
-        {/* Row 4: Valid From & Valid Until */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          {renderFieldBox('validFrom', '6. Valid From', '16/03/2021')}
-          {renderFieldBox('validUntil', '7. Valid Until', '15/03/2024')}
-        </div>
-
-        {/* Bottom Document Seal & Attestation */}
-        <div className="pt-3 border-t border-dashed border-slate-300 flex items-center justify-between text-[11px] text-slate-500">
-          <div>
-            <span className="font-semibold text-slate-700">Declaration:</span> All
-            particulars stated above are subject to automated rule verification.
-          </div>
           <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded border font-mono text-[10px] font-semibold ${
-              photoFlagged
-                ? 'border-amber-500 bg-amber-50 text-amber-800'
-                : 'border-slate-300 bg-slate-50 text-slate-600'
+            className={`rounded-xl border-2 p-2.5 flex items-center justify-between gap-2 ${
+              forensicFlagged
+                ? 'border-[#F59E0B] bg-amber-50/90 ring-2 ring-amber-400/30'
+                : 'border-slate-300 bg-slate-50'
             }`}
           >
-            <Stamp className="w-3.5 h-3.5" />
-            <span>ISSUING SEAL REGION</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Camera
+                className={`w-5 h-5 shrink-0 ${
+                  forensicFlagged ? 'text-amber-700' : 'text-slate-600'
+                }`}
+              />
+              <div className="min-w-0">
+                <div className="text-[10px] font-mono font-bold uppercase text-slate-700 truncate">
+                  Annexure-8 Geotagged Lab Photos
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  {forensicFlagged
+                    ? 'Duplicate lab photo pHash collision'
+                    : 'Unique perceptual hashes verified'}
+                </div>
+              </div>
+            </div>
+            {forensicFlagged ? (
+              <span className="px-2 py-0.5 rounded bg-amber-600 text-white text-[9px] font-mono font-bold shrink-0 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                DUPLICATE
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono text-emerald-700 font-semibold shrink-0 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                UNIQUE
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -253,11 +280,11 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
         <div className="flex items-center gap-3 flex-wrap">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A]" />
-            Compliant
+            APH Compliant
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" />
-            Rule Violation
+            APH Deficiency
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
@@ -265,11 +292,11 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#6366F1]" />
-            Human Review
+            Scrutiny / SHC Review
           </span>
         </div>
         <span className="text-slate-400 font-mono">
-          Hover or click any box to highlight field
+          Hover or click any box ({fields.length} extracted fields)
         </span>
       </div>
     </div>
