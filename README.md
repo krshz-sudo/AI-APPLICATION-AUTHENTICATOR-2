@@ -1,6 +1,6 @@
-# AI-Powered Application Validation, Document Authentication & Regulatory Compliance Verification
+# AI Document Analyser
 
-**Smart India Hackathon 2026 • Problem Statement 26261 • Team Oryan Forge**
+**Automated Application Document Extraction, Forensic Screening & Regulatory Compliance Verification**
 
 > **PROTOTYPE SIMULATION NOTICE:** This is a frontend-only interactive prototype built with React, Vite, TypeScript, Tailwind CSS, Framer Motion, and Lucide Icons. All backend endpoints, orchestration agents, OCR, GAN visual authenticity screening, ChromaDB vector retrieval, and PostgreSQL relational tables are simulated in the browser (`src/mock/*`).
 

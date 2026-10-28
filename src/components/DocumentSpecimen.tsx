@@ -113,9 +113,6 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
           <span className="font-mono font-medium truncate text-white">
             {fileName}
           </span>
-          <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-800 text-[#14B8A6] border border-slate-700 shrink-0">
-            SIMULATED SPECIMEN
-          </span>
         </div>
         {isScanning && (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#14B8A6] animate-pulse">

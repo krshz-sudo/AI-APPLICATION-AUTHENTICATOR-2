@@ -94,24 +94,19 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-[#14B8A6]" />
-            <span className="text-xs font-mono font-bold uppercase text-[#0F766E]">
-              RELATIONAL VERIFICATION ARCHIVE (src/mock/postgres.ts)
-            </span>
-            <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-300">
-              SIMULATED POSTGRESQL
+            <History className="w-5 h-5 text-teal" />
+            <span className="text-xs font-mono font-bold uppercase text-teal">
+              VERIFICATION ARCHIVE
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
             Past Verifications &amp; Audit Records ({runs.length})
           </h1>
           <p className="text-xs sm:text-sm text-slate-600">
-            Backed by simulated PostgreSQL tables (<code className="font-mono">applications</code>,{' '}
-            <code className="font-mono">verification_results</code>,{' '}
-            <code className="font-mono">audit_log</code>). Click any row to inspect its
+            Relational audit records. Select any verification to inspect its
             Review Dashboard or Final Report.
           </p>
         </div>
@@ -120,14 +115,14 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
           type="button"
           disabled={isRefreshing}
           onClick={handleRefresh}
-          className="px-4 py-2.5 rounded-xl bg-[#0B1F3A] hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 shadow-sm self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs flex items-center gap-2 transition-colors duration-150 self-start sm:self-auto"
         >
           <RefreshCw
-            className={`w-4 h-4 text-[#14B8A6] ${
+            className={`w-4 h-4 text-teal ${
               isRefreshing ? 'animate-spin' : ''
             }`}
           />
-          <span>GET /api/applications</span>
+          <span>Refresh Records</span>
         </button>
       </div>
 
@@ -169,7 +164,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
               <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
                 <th className="py-3.5 px-4 font-bold">Run ID / App ID</th>
                 <th className="py-3.5 px-4 font-bold">Applicant Name</th>
-                <th className="py-3.5 px-4 font-bold">Scenario Branch</th>
+                <th className="py-3.5 px-4 font-bold">Document Profile</th>
                 <th className="py-3.5 px-4 font-bold">Overall Status</th>
                 <th className="py-3.5 px-4 font-bold">Field Findings</th>
                 <th className="py-3.5 px-4 font-bold text-right">Actions</th>
@@ -212,7 +207,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
 
                     <td className="py-3.5 px-4">
                       <span className="font-semibold text-slate-800">
-                        {SCENARIO_META[r.scenarioId].shortLabel}
+                        Statutory Form A-1
                       </span>
                     </td>
 
@@ -264,12 +259,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
           <div className="flex items-center gap-2">
             <HardDrive className="w-4 h-4 text-sky-400" />
             <h2 className="font-bold text-xs uppercase tracking-wider">
-              Simulated PostgreSQL Transaction Log (applications, verification_results,
-              audit_log)
+              PostgreSQL Transaction Log (applications, verification_results, audit_log)
             </h2>
           </div>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-            SIMULATED SQL
+            SQL
           </span>
         </div>
 

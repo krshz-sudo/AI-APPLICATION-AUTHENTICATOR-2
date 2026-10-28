@@ -1,7 +1,7 @@
 import { SqlLogEntry, VerificationRun } from '../types';
 
-const STORAGE_KEY_RUNS = 'oryan_forge_sih2026_runs_v1';
-const STORAGE_KEY_SQL = 'oryan_forge_sih2026_sql_v1';
+const STORAGE_KEY_RUNS = 'ai_document_analyser_runs_v1';
+const STORAGE_KEY_SQL = 'ai_document_analyser_sql_v1';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

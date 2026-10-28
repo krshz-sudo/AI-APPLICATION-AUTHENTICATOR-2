@@ -30,12 +30,9 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Network className="w-5 h-5 text-[#14B8A6]" />
-            <span className="text-xs font-mono font-bold uppercase text-[#0F766E]">
+            <Network className="w-5 h-5 text-teal" />
+            <span className="text-xs font-mono font-bold uppercase text-teal">
               SYSTEM ARCHITECTURE &amp; DATA TOPOLOGY
-            </span>
-            <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
-              SIMULATED IN THIS PROTOTYPE
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
@@ -149,8 +146,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
               fontFamily="JetBrains Mono, monospace"
               fontWeight="600"
             >
-              SIH 2026 • PS 26261 • TEAM ORYAN FORGE — EVERY COMPONENT LABELED
-              &quot;SIMULATED IN THIS PROTOTYPE&quot;
+              AI DOCUMENT ANALYSER — PIPELINE ARCHITECTURE &amp; DATA TOPOLOGY
             </text>
 
             {/* 1. FRONTEND LAYER */}
@@ -182,7 +178,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
               fontFamily="JetBrains Mono, monospace"
               fontWeight="700"
             >
-              SIMULATED IN THIS PROTOTYPE
+              CLIENT APPLICATION
             </text>
             <text
               x="140"
@@ -310,7 +306,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
               fontFamily="JetBrains Mono, monospace"
               fontWeight="700"
             >
-              SIMULATED IN THIS PROTOTYPE
+              REST INTERFACE
             </text>
             <text
               x="422"
@@ -443,7 +439,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
               fontFamily="JetBrains Mono, monospace"
               fontWeight="700"
             >
-              SIMULATED IN THIS PROTOTYPE
+              PIPELINE ORCHESTRATOR
             </text>
             <text
               x="842"
@@ -571,7 +567,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
                   fontFamily="JetBrains Mono, monospace"
                   fontWeight="700"
                 >
-                  SIMULATED TOOL
+                  TOOL RUNTIME
                 </text>
                 <text
                   x={t.x + 82}
@@ -680,7 +676,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
               fontFamily="JetBrains Mono, monospace"
               fontWeight="700"
             >
-              VECTOR DB (ChromaDB, demo — Pinecone / FAISS compatible) • SIMULATED
+              VECTOR DB (ChromaDB / Pinecone / FAISS compatible)
             </text>
             <text x="55" y="534" fill="#FFFFFF" fontSize="13" fontWeight="700">
               Unstructured Regulatory Reference Corpus (src/mock/vectorStore.ts &amp;
@@ -747,7 +743,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
               fontFamily="JetBrains Mono, monospace"
               fontWeight="700"
             >
-              RELATIONAL POSTGRESQL (Structured Data Store) • SIMULATED
+              RELATIONAL POSTGRESQL (Structured Data Store)
             </text>
             <text x="630" y="534" fill="#FFFFFF" fontSize="13" fontWeight="700">
               Transactional Tables (src/mock/postgres.ts)
@@ -763,16 +759,13 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
         </div>
       </div>
 
-      {/* Simulated Modules Summary Grid */}
+      {/* Architecture Modules Summary Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-2">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs font-bold text-[#0B1F3A] flex items-center gap-1.5">
               <FileCode2 className="w-4 h-4 text-[#14B8A6]" />
-              src/mock/orchestrator.ts &amp; tools.ts
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-              SIMULATED
+              orchestrator &amp; tools
             </span>
           </div>
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -782,23 +775,20 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
             <code className="font-mono">ragRetrieveTool</code>,{' '}
             <code className="font-mono">complianceTool</code>,{' '}
             <code className="font-mono">llmExplainTool</code>, and{' '}
-            <code className="font-mono">dbTool</code> with 600–1200 ms async latency.
+            <code className="font-mono">dbTool</code>.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-2">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs font-bold text-[#0B1F3A] flex items-center gap-1.5">
               <Database className="w-4 h-4 text-[#14B8A6]" />
-              src/mock/vectorStore.ts
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-              SIMULATED
+              vectorStore
             </span>
           </div>
           <p className="text-xs text-slate-600 leading-relaxed">
-            Simulated ChromaDB collection containing 20 regulatory PDF passages.
-            Returns top-3 relevant passages with similarity scores (0.91 / 0.84 / 0.79)
+            ChromaDB collection containing 20 regulatory PDF passages.
+            Returns top-3 relevant passages with similarity scores
             to ground compliance citations.
           </p>
         </div>

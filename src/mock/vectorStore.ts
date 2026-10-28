@@ -75,7 +75,7 @@ export async function searchVectorStore(
 
   return {
     dbLabel: VECTOR_DB_LABEL,
-    collectionName: 'sih2026_regulatory_guidelines_v4',
+    collectionName: 'regulatory_guidelines_v4',
     totalIndexedChunks: MOCK_CORPUS.length,
     queryText: customQuery || defaultQuery,
     embeddingPreview: '[-0.0241, 0.0819, -0.0412, 0.1104, 0.0093, ... 1536 dims]',

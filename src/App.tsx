@@ -180,24 +180,15 @@ export const App: React.FC = () => {
       <Navbar
         activeScreen={activeScreen}
         onSelectScreen={setActiveScreen}
-        selectedScenario={selectedScenario}
-        onQuickSwitchScenario={(sc) => {
-          if (activeScreen === 'pipeline') {
-            handleStartVerification(sc);
-          } else {
-            handleSwitchScenarioInstant(sc);
-          }
-        }}
-        isPipelineRunning={isPipelineRunning}
       />
 
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-6">
         {activeScreen === 'upload' && (
           <UploadScreen
-            selectedScenario={selectedScenario}
-            onSelectScenario={handleSwitchScenarioInstant}
-            onStartVerification={handleStartVerification}
-            onGoToReviewDirectly={handleGoToReviewDirectly}
+            onStartVerification={(customFile) =>
+              handleStartVerification('D', customFile)
+            }
+            onGoToReviewDirectly={() => setActiveScreen('review')}
           />
         )}
 

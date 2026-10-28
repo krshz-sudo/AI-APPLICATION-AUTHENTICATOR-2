@@ -27,7 +27,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
   const handleDownloadJson = () => {
     const payload = {
       reportMetadata: {
-        prototype: 'SIH 2026 | PS 26261 | Oryan Forge (SIMULATED)',
+        system: 'AI Document Analyser',
         generatedAt: new Date().toISOString(),
         scopeStatement:
           run.overallStatus === 'PASSED'
@@ -114,17 +114,17 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
           <button
             type="button"
             onClick={handleDownloadJson}
-            className="px-4 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-900 font-bold text-xs flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs flex items-center gap-1.5 shadow-sm transition-colors duration-150"
           >
-            <Download className="w-4 h-4 text-[#14B8A6]" />
+            <Download className="w-4 h-4 text-slate-500" />
             <span>Download JSON</span>
           </button>
           <button
             type="button"
             onClick={handlePrintPdf}
-            className="px-4 py-2 rounded-xl bg-[#0B1F3A] hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 rounded-lg bg-teal text-navy-900 hover:bg-teal-600 font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-colors duration-150"
           >
-            <Printer className="w-4 h-4 text-[#14B8A6]" />
+            <Printer className="w-4 h-4" />
             <span>Print / Save as PDF</span>
           </button>
         </div>
@@ -137,12 +137,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-[#14B8A6]" />
-                <span className="text-xs font-mono uppercase tracking-wider text-[#14B8A6]">
-                  ORYAN FORGE • SIH 2026 (PS 26261) • VERIFICATION REPORT
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 text-[#FF9933]">
-                  SIMULATED
+                <ShieldCheck className="w-5 h-5 text-teal" />
+                <span className="text-xs font-mono uppercase tracking-wider text-teal">
+                  AI DOCUMENT ANALYSER • VERIFICATION REPORT
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-bold">
@@ -157,7 +154,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
             <div className="text-left sm:text-right font-mono text-xs text-slate-300 space-y-0.5">
               <div>Created: {new Date(run.createdAt).toLocaleString()}</div>
               <div>Updated: {new Date(run.updatedAt).toLocaleString()}</div>
-              <div>Scenario: {run.scenarioId}</div>
+              <div>Profile: Statutory Form A-1</div>
             </div>
           </div>
         </div>

@@ -190,23 +190,19 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Status & Quick Scenario Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      {/* Top Status & Pipeline Control Bar */}
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-mono font-bold uppercase px-2 py-0.5 rounded bg-[#0B1F3A] text-[#14B8A6]">
-              STRICT SEQUENTIAL PIPELINE
+            <span className="text-xs font-mono font-bold uppercase px-2 py-0.5 rounded bg-navy-900 text-teal">
+              SEQUENTIAL PIPELINE
             </span>
             <span className="text-xs font-mono font-semibold text-slate-500">
               Run ID: {activeRun.id} • {activeRun.fileName}
             </span>
-            <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
-              ORCHESTRATOR: SIMULATED
-            </span>
           </div>
           <h1 className="text-lg sm:text-xl font-bold text-slate-900">
-            {SCENARIO_META[activeRun.scenarioId].shortLabel}:{' '}
-            {SCENARIO_META[activeRun.scenarioId].title}
+            Document Verification Pipeline
           </h1>
           <p className="text-xs text-slate-600">
             {isRunning && progress
@@ -220,25 +216,25 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
             type="button"
             disabled={isRunning}
             onClick={() => onRerunScenario(activeRun.scenarioId)}
-            className="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-800 font-semibold text-xs flex items-center gap-1.5 disabled:opacity-50"
+            className="px-3.5 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs flex items-center gap-1.5 transition-colors duration-150 disabled:opacity-50"
           >
-            <Play className="w-3.5 h-3.5 text-[#14B8A6] fill-[#14B8A6]" />
-            <span>Re-run Animation</span>
-          </button>
-          <button
-            type="button"
-            onClick={onGoToReview}
-            className="px-4 py-2 rounded-xl bg-[#0B1F3A] hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm"
-          >
-            <span>Open Review Dashboard</span>
-            <ArrowRight className="w-3.5 h-3.5 text-[#14B8A6]" />
+            <Play className="w-3.5 h-3.5 text-teal fill-teal" />
+            <span>Re-run Pipeline</span>
           </button>
           <button
             type="button"
             onClick={onGoToReport}
-            className="px-3.5 py-2 rounded-xl bg-[#14B8A6]/15 hover:bg-[#14B8A6]/25 text-[#0B1F3A] border border-[#14B8A6]/40 font-semibold text-xs"
+            className="px-3.5 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors duration-150"
           >
             Final Report
+          </button>
+          <button
+            type="button"
+            onClick={onGoToReview}
+            className="px-4 py-2 rounded-lg bg-teal text-navy-900 hover:bg-teal-600 font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-colors duration-150"
+          >
+            <span>Review Dashboard</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -416,11 +412,8 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
               <div className="flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-[#14B8A6]" />
                 <h3 className="font-bold text-base text-slate-900">
-                  Stage 3: Authenticity Analysis (Proposed GAN-Based Approach)
+                  Stage 3: Authenticity Analysis (GAN Screening)
                 </h3>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
-                  SIMULATED
-                </span>
               </div>
               <span className="text-xs font-mono font-bold text-slate-700">
                 {stages.authenticity.state === 'skipped'
@@ -499,9 +492,6 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
                 <h3 className="font-bold text-base text-slate-900">
                   Stage 4: RAG Regulatory Compliance &amp; {VECTOR_DB_LABEL}
                 </h3>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
-                  SIMULATED
-                </span>
               </div>
               <span className="text-xs font-mono font-semibold text-[#0F766E]">
                 20 Corpus Entries • Top-3 Retrieval
@@ -676,14 +666,11 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
           <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 shadow-lg overflow-hidden">
             <div className="px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-[#14B8A6]" />
+                <Terminal className="w-4 h-4 text-teal" />
                 <h3 className="font-bold text-xs uppercase tracking-wider">
                   Agent Activity Log
                 </h3>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#14B8A6]/20 text-[#14B8A6] border border-[#14B8A6]/30">
-                SIMULATED
-              </span>
             </div>
             <div className="p-3 max-h-72 overflow-y-auto custom-scrollbar space-y-2 font-mono text-xs">
               {agentLogs.length === 0 ? (
@@ -725,15 +712,12 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
               className="w-full px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between text-left"
             >
               <div className="flex items-center gap-2">
-                <Server className="w-4 h-4 text-[#FF9933]" />
+                <Server className="w-4 h-4 text-amber-500" />
                 <h3 className="font-bold text-xs uppercase tracking-wider">
-                  HTTP / JSON API Log (src/mock/api.ts)
+                  HTTP / JSON API Log
                 </h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#FF9933]/20 text-[#FF9933] border border-[#FF9933]/30">
-                  SIMULATED
-                </span>
                 {apiPanelOpen ? (
                   <ChevronUp className="w-4 h-4 text-slate-400" />
                 ) : (
@@ -788,11 +772,11 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
               <div className="flex items-center gap-2">
                 <HardDrive className="w-4 h-4 text-sky-400" />
                 <h3 className="font-bold text-xs uppercase tracking-wider">
-                  Fake PostgreSQL Log (Relational)
+                  PostgreSQL Transaction Log
                 </h3>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                SIMULATED SQL
+                SQL
               </span>
             </div>
             <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar space-y-2 font-mono text-[11px]">
