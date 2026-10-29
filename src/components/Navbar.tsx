@@ -5,9 +5,9 @@ import {
   FileCheck2,
   ClipboardList,
   History,
-  ShieldCheck,
 } from 'lucide-react';
 import { ScreenId } from '../types';
+import { LogoNavbarMark } from './brand/Logo';
 
 interface NavbarProps {
   activeScreen: ScreenId;
@@ -38,19 +38,22 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="bg-navy-900 border-b border-slate-800 sticky top-0 z-40 no-print">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2.5 sm:py-3">
-          {/* Left: App Title */}
+          {/* Left: App Title + Static Mark-Only Logo */}
           <button
             type="button"
             onClick={() => onSelectScreen('upload')}
             className="flex items-center gap-2.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-teal rounded-lg transition-opacity hover:opacity-90 self-start sm:self-auto"
-            aria-label="AI Document Analyser - Go to Upload"
+            aria-label="AICTE Scrutiny & Compliance Portal - Go to Upload"
           >
-            <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal">
-              <ShieldCheck className="w-4 h-4" />
+            <LogoNavbarMark size={32} />
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm sm:text-base text-white tracking-tight leading-tight">
+                AICTE Scrutiny &amp; Compliance Portal
+              </span>
+              <span className="font-mono text-[10px] text-teal-400 tracking-wider uppercase leading-none mt-0.5">
+                AI Document Analyser
+              </span>
             </div>
-            <span className="font-semibold text-base sm:text-lg text-white tracking-tight">
-              AI Document Analyser
-            </span>
           </button>
 
           {/* Navigation Tabs */}

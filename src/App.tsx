@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import {
   AgentActivityLog,
   ApiLogEntry,
@@ -34,8 +35,9 @@ import { ReportScreen } from './components/ReportScreen';
 import { ArchitectureScreen } from './components/ArchitectureScreen';
 import { HistoryScreen } from './components/HistoryScreen';
 import { PdfSnippetModal } from './components/PdfSnippetModal';
+import { LandingPage } from './components/landing/LandingPage';
 
-export const App: React.FC = () => {
+export const PortalWorkspace: React.FC = () => {
   const seedRuns = useMemo(() => buildSeedVerificationRuns(), []);
 
   const [runs, setRuns] = useState<VerificationRun[]>(() => {
@@ -265,6 +267,18 @@ export const App: React.FC = () => {
         onClose={() => setPdfModalRuleId(null)}
       />
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/app/*" element={<PortalWorkspace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
