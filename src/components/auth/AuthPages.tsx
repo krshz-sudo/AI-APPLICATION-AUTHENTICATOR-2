@@ -15,6 +15,27 @@ import { isSupabaseConfigured, supabase, type OfficerRole } from '../../lib/supa
 import { useAuth } from '../../context/AuthContext';
 import { Logo } from '../brand/Logo';
 import { FadeUpOnMount } from '../../motion/wrappers';
+import { POST_AUTH_REDIRECT_KEY } from './ProtectedRoute';
+
+function resolvePostAuthPath(location: { state?: unknown }): string {
+  const from = (
+    location.state as {
+      from?: { pathname?: string; search?: string; hash?: string };
+    } | null
+  )?.from;
+  if (from?.pathname) {
+    return `${from.pathname}${from.search || ''}${from.hash || ''}`;
+  }
+  try {
+    const saved = sessionStorage.getItem(POST_AUTH_REDIRECT_KEY);
+    if (saved && saved.startsWith('/app')) {
+      return saved;
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return '/app';
+}
 
 function formatAuthError(err: unknown): { title: string; detail: string; isOffline: boolean } {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -157,9 +178,7 @@ export const SignInPage: React.FC = () => {
   const { isAuthenticated, signInAsDemo } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const fromPath =
-    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ||
-    '/app';
+  const fromPath = resolvePostAuthPath(location);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -191,7 +210,7 @@ export const SignInPage: React.FC = () => {
 
     if (!supabase || !isSupabaseConfigured) {
       signInAsDemo('scrutiny_officer', cleanEmail.split('@')[0] || 'A. K. Verma');
-      navigate('/app', { replace: true });
+      navigate(fromPath, { replace: true });
       return;
     }
 
@@ -230,10 +249,15 @@ export const SignInPage: React.FC = () => {
     }
     setGoogleSubmitting(true);
     try {
+      try {
+        sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, fromPath);
+      } catch {
+        // Ignore storage errors
+      }
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/app`,
+          redirectTo: `${window.location.origin}${fromPath}`,
         },
       });
       if (error) {
@@ -251,7 +275,7 @@ export const SignInPage: React.FC = () => {
       role,
       role === 'evc_officer' ? 'Dr. R. K. Nair (EVC)' : 'A. K. Verma'
     );
-    navigate('/app', { replace: true });
+    navigate(fromPath, { replace: true });
   };
 
   return (
@@ -383,6 +407,7 @@ export const SignInPage: React.FC = () => {
         Don&apos;t have an officer account?{' '}
         <Link
           to="/signup"
+          state={location.state}
           className="text-teal-400 hover:text-teal-300 font-semibold underline"
         >
           Create account
@@ -395,6 +420,8 @@ export const SignInPage: React.FC = () => {
 export const SignUpPage: React.FC = () => {
   const { isAuthenticated, signInAsDemo } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromPath = resolvePostAuthPath(location);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -410,7 +437,7 @@ export const SignUpPage: React.FC = () => {
   } | null>(null);
 
   if (isAuthenticated) {
-    return <Navigate to="/app" replace />;
+    return <Navigate to={fromPath} replace />;
   }
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -439,7 +466,7 @@ export const SignUpPage: React.FC = () => {
 
     if (!supabase || !isSupabaseConfigured) {
       signInAsDemo(role, cleanName);
-      navigate('/app', { replace: true });
+      navigate(fromPath, { replace: true });
       return;
     }
 
@@ -453,7 +480,7 @@ export const SignUpPage: React.FC = () => {
             full_name: cleanName,
             role,
           },
-          emailRedirectTo: `${window.location.origin}/app`,
+          emailRedirectTo: `${window.location.origin}${fromPath}`,
         },
       });
 
@@ -463,7 +490,7 @@ export const SignUpPage: React.FC = () => {
       }
 
       if (data.session) {
-        navigate('/app', { replace: true });
+        navigate(fromPath, { replace: true });
       } else {
         setConfirmationSentTo(cleanEmail);
       }
@@ -478,7 +505,7 @@ export const SignUpPage: React.FC = () => {
     setErrorInfo(null);
     if (!supabase || !isSupabaseConfigured) {
       signInAsDemo(role, fullName.trim() || 'A. K. Verma');
-      navigate('/app', { replace: true });
+      navigate(fromPath, { replace: true });
       return;
     }
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -487,10 +514,15 @@ export const SignUpPage: React.FC = () => {
     }
     setGoogleSubmitting(true);
     try {
+      try {
+        sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, fromPath);
+      } catch {
+        // Ignore storage errors
+      }
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/app`,
+          redirectTo: `${window.location.origin}${fromPath}`,
         },
       });
       if (error) {
@@ -706,6 +738,7 @@ export const SignUpPage: React.FC = () => {
         Already registered?{' '}
         <Link
           to="/signin"
+          state={location.state}
           className="text-teal-400 hover:text-teal-300 font-semibold underline"
         >
           Sign in

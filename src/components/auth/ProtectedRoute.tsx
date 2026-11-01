@@ -3,6 +3,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Logo } from '../brand/Logo';
 
+export const POST_AUTH_REDIRECT_KEY = 'aicte_post_auth_redirect';
+
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -26,6 +28,12 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   }
 
   if (!isAuthenticated) {
+    const fullTarget = `${location.pathname}${location.search || ''}${location.hash || ''}`;
+    try {
+      sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, fullTarget);
+    } catch {
+      // Ignore storage errors in restricted environments
+    }
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 

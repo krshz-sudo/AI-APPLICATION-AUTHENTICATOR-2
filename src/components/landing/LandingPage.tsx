@@ -811,72 +811,75 @@ export const LandingPage: React.FC = () => {
                 <motion.article
                   key={sc.id}
                   variants={fadeUp}
-                  className={`bg-white rounded-xl border p-5 shadow-panel flex flex-col justify-between space-y-4 ${
-                    sc.id === 'D'
-                      ? 'border-navy-900 ring-1 ring-navy-900/10'
-                      : 'border-slate-200'
-                  }`}
+                  className="flex"
                 >
-                  <div className="space-y-3">
-                    {/* Top Row: Scenario Code + Status Chip */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-bold uppercase tracking-wider text-navy-900">
-                        {sc.code}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusChipStyles(
-                          sc.statusTone
-                        )}`}
-                      >
-                        {statusChipIcon(sc.statusTone)}
-                        <span>{sc.statusLabel}</span>
-                      </span>
+                  <Link
+                    to={`/app?scenario=${sc.id}`}
+                    aria-label={`Inspect ${sc.code}: ${sc.institutionName} (${sc.statusLabel})`}
+                    className={`group w-full bg-white rounded-xl border p-5 shadow-panel flex flex-col justify-between space-y-4 transition-colors duration-150 hover:border-navy-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal tactile-press ${
+                      sc.id === 'D'
+                        ? 'border-navy-900 ring-1 ring-navy-900/10'
+                        : 'border-slate-200'
+                    }`}
+                  >
+                    <div className="space-y-3">
+                      {/* Top Row: Scenario Code + Status Chip */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-xs font-bold uppercase tracking-wider text-navy-900">
+                          {sc.code}
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusChipStyles(
+                            sc.statusTone
+                          )}`}
+                        >
+                          {statusChipIcon(sc.statusTone)}
+                          <span>{sc.statusLabel}</span>
+                        </span>
+                      </div>
+
+                      {/* Synthetic Institution Name */}
+                      <div>
+                        <h3 className="text-sm sm:text-base font-bold text-navy-900 leading-snug group-hover:text-teal-700 transition-colors">
+                          {sc.institutionName}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs font-mono text-slate-500 tabular-nums">
+                          <span>PID: {sc.pid}</span>
+                          <span>•</span>
+                          <span>App: {sc.appId}</span>
+                        </div>
+                      </div>
+
+                      {/* Stage Progression Pill */}
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-lg px-3 py-2 font-mono text-[11px] text-slate-700">
+                        <div className="font-semibold text-navy-900">{sc.stageSummary}</div>
+                        <div className="text-slate-500 mt-0.5">{sc.fieldCounts}</div>
+                      </div>
+
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        {sc.description}
+                      </p>
                     </div>
 
-                    {/* Synthetic Institution Name */}
-                    <div>
-                      <h3 className="text-sm sm:text-base font-bold text-navy-900 leading-snug">
-                        {sc.institutionName}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs font-mono text-slate-500 tabular-nums">
-                        <span>PID: {sc.pid}</span>
-                        <span>•</span>
-                        <span>App: {sc.appId}</span>
+                    <div className="space-y-3 pt-2 border-t border-slate-100">
+                      {/* Cited Clauses */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {sc.ruleHighlights.map((rule) => (
+                          <span
+                            key={rule}
+                            className="font-mono text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
+                          >
+                            {rule}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="inline-flex items-center justify-between w-full min-h-[42px] px-3.5 py-2 rounded-lg bg-slate-100 group-hover:bg-navy-900 text-navy-900 group-hover:text-white text-xs font-semibold transition-colors">
+                        <span>Inspect Scenario {sc.id} Dossier</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </div>
                     </div>
-
-                    {/* Stage Progression Pill */}
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-lg px-3 py-2 font-mono text-[11px] text-slate-700">
-                      <div className="font-semibold text-navy-900">{sc.stageSummary}</div>
-                      <div className="text-slate-500 mt-0.5">{sc.fieldCounts}</div>
-                    </div>
-
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      {sc.description}
-                    </p>
-                  </div>
-
-                  <div className="space-y-3 pt-2 border-t border-slate-100">
-                    {/* Cited Clauses */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {sc.ruleHighlights.map((rule) => (
-                        <span
-                          key={rule}
-                          className="font-mono text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
-                        >
-                          {rule}
-                        </span>
-                      ))}
-                    </div>
-
-                    <Link
-                      to="/app"
-                      className="inline-flex items-center justify-between w-full min-h-[42px] px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-navy-900 text-navy-900 hover:text-white text-xs font-semibold transition-colors tactile-press"
-                    >
-                      <span>Inspect Scenario {sc.id} Dossier</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
+                  </Link>
                 </motion.article>
               ))}
             </motion.div>
