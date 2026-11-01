@@ -1,0 +1,6 @@
+.env*
+*.local
+client_secret*.json
+.git
+.worktrees
+agy
