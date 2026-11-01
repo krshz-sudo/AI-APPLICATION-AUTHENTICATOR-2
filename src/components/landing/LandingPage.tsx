@@ -232,7 +232,7 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900">
+    <div className="min-h-[100svh] flex flex-col bg-[#F8FAFC] text-slate-900">
       {/* Persistent Top Regulatory Simulation Notice Bar */}
       <div className="bg-navy-900 border-b border-slate-800/90 text-slate-300 text-[11px] sm:text-xs font-mono py-2 px-4 safe-top">
         <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
@@ -252,7 +252,7 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* 1. Navbar */}
-      <header className="bg-navy-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+      <header className="bg-navy-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 safe-top">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16 gap-3">
             {/* Brand Lockup */}
@@ -300,13 +300,13 @@ export const LandingPage: React.FC = () => {
             {/* Desktop Sign In / Sign Up & Launch Actions */}
             <div className="hidden sm:flex items-center gap-2.5">
               <Link
-                to="/app?auth=signin"
+                to="/signin"
                 className="inline-flex items-center justify-center min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-200 hover:text-white border border-slate-700 hover:border-slate-600 bg-navy-800/60 tactile-press"
               >
                 Sign in
               </Link>
               <Link
-                to="/app?auth=signup"
+                to="/signup"
                 className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-teal text-navy-900 hover:bg-teal-400 shadow-sm tactile-press"
               >
                 Sign up
@@ -353,14 +353,14 @@ export const LandingPage: React.FC = () => {
               </div>
               <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2.5">
                 <Link
-                  to="/app?auth=signin"
+                  to="/signin"
                   onClick={() => setMobileMenuOpen(false)}
                   className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-medium text-center text-slate-200 border border-slate-700 bg-navy-800 flex items-center justify-center tactile-press"
                 >
                   Sign in
                 </Link>
                 <Link
-                  to="/app?auth=signup"
+                  to="/signup"
                   onClick={() => setMobileMenuOpen(false)}
                   className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-center bg-teal text-navy-900 flex items-center justify-center tactile-press"
                 >
@@ -1056,7 +1056,7 @@ export const LandingPage: React.FC = () => {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  to="/app?auth=signin"
+                  to="/signin"
                   className="inline-flex items-center justify-center min-h-[48px] px-5 py-3 rounded-xl bg-navy-800 hover:bg-slate-800 text-slate-200 border border-slate-700 font-medium text-sm tactile-press"
                 >
                   Officer Sign in

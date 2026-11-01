@@ -8,3 +8,4 @@ agy
 .vercel
 .env*
 .worktrees
+client_secret*.json

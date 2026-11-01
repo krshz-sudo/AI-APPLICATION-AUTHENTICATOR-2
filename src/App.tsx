@@ -36,6 +36,9 @@ import { ArchitectureScreen } from './components/ArchitectureScreen';
 import { HistoryScreen } from './components/HistoryScreen';
 import { PdfSnippetModal } from './components/PdfSnippetModal';
 import { LandingPage } from './components/landing/LandingPage';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { SignInPage, SignUpPage } from './components/auth/AuthPages';
 
 export const PortalWorkspace: React.FC = () => {
   const seedRuns = useMemo(() => buildSeedVerificationRuns(), []);
@@ -178,7 +181,7 @@ export const PortalWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900">
+    <div className="min-h-[100dvh] flex flex-col bg-[#F8FAFC] text-slate-900">
       <Navbar
         activeScreen={activeScreen}
         onSelectScreen={setActiveScreen}
@@ -273,11 +276,22 @@ export const PortalWorkspace: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/app/*" element={<PortalWorkspace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route
+            path="/app/*"
+            element={
+              <ProtectedRoute>
+                <PortalWorkspace />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 };
