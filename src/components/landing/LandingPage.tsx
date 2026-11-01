@@ -14,10 +14,13 @@ import {
   Menu,
   X,
   Terminal,
+  ChevronDown,
 } from 'lucide-react';
 import { Logo } from '../brand/Logo';
 import { DURATION, DURATION_MS, EASING, TRANSITION } from '../../motion/tokens';
 import { useReducedMotionSafe } from '../../motion/useReducedMotionSafe';
+import { Collapse } from '../../motion/wrappers';
+import { useAuth } from '../../context/AuthContext';
 
 interface PipelineStageSpec {
   step: string;
@@ -167,6 +170,8 @@ const SCENARIO_SHOWCASE: ScenarioShowcaseCard[] = [
 
 export const LandingPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedStageId, setExpandedStageId] = useState<string | null>('ocr');
+  const { isAuthenticated } = useAuth();
   const {
     prefersReducedMotion,
     fadeUp,
@@ -299,18 +304,30 @@ export const LandingPage: React.FC = () => {
 
             {/* Desktop Sign In / Sign Up & Launch Actions */}
             <div className="hidden sm:flex items-center gap-2.5">
-              <Link
-                to="/signin"
-                className="inline-flex items-center justify-center min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-200 hover:text-white border border-slate-700 hover:border-slate-600 bg-navy-800/60 tactile-press"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/signup"
-                className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-teal text-navy-900 hover:bg-teal-400 shadow-sm tactile-press"
-              >
-                Sign up
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  to="/app"
+                  className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-teal text-navy-900 hover:bg-teal-400 shadow-sm tactile-press"
+                >
+                  <span>Open portal</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/signin"
+                    className="inline-flex items-center justify-center min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-200 hover:text-white border border-slate-700 hover:border-slate-600 bg-navy-800/60 tactile-press"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-teal text-navy-900 hover:bg-teal-400 shadow-sm tactile-press"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Hamburger Button (44x44px minimum tap target) */}
@@ -351,21 +368,34 @@ export const LandingPage: React.FC = () => {
                   APH 2024–27 Citations &amp; Audit Trust
                 </a>
               </div>
-              <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2.5">
-                <Link
-                  to="/signin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-medium text-center text-slate-200 border border-slate-700 bg-navy-800 flex items-center justify-center tactile-press"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-center bg-teal text-navy-900 flex items-center justify-center tactile-press"
-                >
-                  Sign up
-                </Link>
+              <div className="pt-2 border-t border-slate-800">
+                {isAuthenticated ? (
+                  <Link
+                    to="/app"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-center bg-teal text-navy-900 flex items-center justify-center gap-1.5 tactile-press"
+                  >
+                    <span>Open portal</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Link
+                      to="/signin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-medium text-center text-slate-200 border border-slate-700 bg-navy-800 flex items-center justify-center tactile-press"
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      to="/signup"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-center bg-teal text-navy-900 flex items-center justify-center tactile-press"
+                    >
+                      Sign up
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -657,11 +687,12 @@ export const LandingPage: React.FC = () => {
               </motion.div>
             </motion.div>
 
-            {/* 4-Stage Sequential Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* 4-Stage Sequential Grid (Tappable Accordion Cards, 1 open at a time) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
               {PIPELINE_STAGES.map((stage, index) => {
                 const stageNumber = index + 1;
                 const isLit = litStages >= stageNumber;
+                const isExpanded = expandedStageId === stage.id;
 
                 return (
                   <motion.article
@@ -674,79 +705,112 @@ export const LandingPage: React.FC = () => {
                       ease: EASING.easeOut,
                       delay: prefersReducedMotion ? 0 : index * 0.06,
                     })}
-                    className={`relative rounded-xl p-5 border transition-colors duration-200 flex flex-col justify-between ${
+                    className={`relative rounded-xl border transition-colors duration-200 overflow-hidden ${
                       isLit
-                        ? 'bg-navy-900 text-white border-teal-500/70 shadow-panel'
+                        ? isExpanded
+                          ? 'bg-navy-900 text-white border-teal shadow-panel ring-1 ring-teal/40'
+                          : 'bg-navy-900 text-white border-teal-500/70 shadow-panel hover:border-teal-400'
                         : 'bg-[#F8FAFC] text-slate-500 border-slate-200'
                     }`}
                   >
-                    {/* Top Progress Connector Bar (composite transform scaleX) */}
-                    <div className="w-full h-1 bg-slate-200/30 rounded-full overflow-hidden mb-4">
-                      <motion.div
-                        initial={{ scaleX: 0 }}
-                        animate={{ scaleX: isLit ? 1 : 0 }}
-                        transition={getTransition(TRANSITION.slowOut)}
-                        style={{ transformOrigin: 'left' }}
-                        className="h-full w-full bg-teal"
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className={`font-mono text-xs font-bold tracking-wider ${
-                            isLit ? 'text-teal-400' : 'text-slate-400'
-                          }`}
-                        >
-                          {stage.step}
-                        </span>
-                        <motion.span
-                          variants={scaleIn}
-                          initial="hidden"
-                          animate={isLit ? 'visible' : 'hidden'}
-                          className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                            isLit
-                              ? 'bg-teal-500/15 text-teal-300 border-teal-500/40'
-                              : 'bg-slate-200 text-slate-500 border-slate-300'
-                          }`}
-                        >
-                          {isLit ? 'STAGE ACTIVE' : 'WAITING'}
-                        </motion.span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedStageId((prev) =>
+                          prev === stage.id ? null : stage.id
+                        )
+                      }
+                      aria-expanded={isExpanded}
+                      aria-controls={`stage-detail-${stage.id}`}
+                      className="w-full p-5 text-left flex flex-col justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal tactile-press"
+                    >
+                      {/* Top Progress Connector Bar (composite transform scaleX) */}
+                      <div className="w-full h-1 bg-slate-200/30 rounded-full overflow-hidden mb-4">
+                        <motion.div
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: isLit ? 1 : 0 }}
+                          transition={getTransition(TRANSITION.slowOut)}
+                          style={{ transformOrigin: 'left' }}
+                          className="h-full w-full bg-teal"
+                        />
                       </div>
 
-                      <h3
-                        className={`text-base font-bold tracking-tight ${
-                          isLit ? 'text-white' : 'text-slate-700'
-                        }`}
-                      >
-                        {stage.title}
-                      </h3>
+                      <div className="space-y-3 w-full">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`font-mono text-xs font-bold tracking-wider ${
+                              isLit ? 'text-teal-400' : 'text-slate-400'
+                            }`}
+                          >
+                            {stage.step}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <motion.span
+                              variants={scaleIn}
+                              initial="hidden"
+                              animate={isLit ? 'visible' : 'hidden'}
+                              className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                                isLit
+                                  ? 'bg-teal-500/15 text-teal-300 border-teal-500/40'
+                                  : 'bg-slate-200 text-slate-500 border-slate-300'
+                              }`}
+                            >
+                              {isLit ? 'STAGE ACTIVE' : 'WAITING'}
+                            </motion.span>
+                            <ChevronDown
+                              className={`w-4 h-4 transition-transform duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
+                                isLit ? 'text-teal-400' : 'text-slate-400'
+                              } ${isExpanded ? 'rotate-180' : ''}`}
+                            />
+                          </div>
+                        </div>
 
-                      <p
-                        className={`text-xs leading-relaxed ${
-                          isLit ? 'text-slate-300' : 'text-slate-500'
-                        }`}
-                      >
-                        {stage.summary}
-                      </p>
-                    </div>
+                        <h3
+                          className={`text-base font-bold tracking-tight ${
+                            isLit ? 'text-white' : 'text-slate-700'
+                          }`}
+                        >
+                          {stage.title}
+                        </h3>
+                      </div>
 
-                    <div
-                      className={`mt-5 pt-3 border-t flex items-center justify-between gap-2 text-[11px] font-mono ${
-                        isLit
-                          ? 'border-slate-800 text-slate-300'
-                          : 'border-slate-200 text-slate-400'
-                      }`}
-                    >
-                      <span className="truncate">{stage.toolName}</span>
-                      <span
-                        className={`font-semibold shrink-0 ${
-                          isLit ? 'text-saffron' : 'text-slate-400'
+                      <div
+                        className={`mt-4 pt-3 border-t w-full flex items-center justify-between gap-2 text-[11px] font-mono ${
+                          isLit
+                            ? 'border-slate-800 text-slate-300'
+                            : 'border-slate-200 text-slate-400'
                         }`}
                       >
-                        {stage.gateRule}
-                      </span>
-                    </div>
+                        <span className="truncate">{stage.toolName}</span>
+                        <span
+                          className={`font-semibold shrink-0 ${
+                            isLit ? 'text-saffron' : 'text-slate-400'
+                          }`}
+                        >
+                          {stage.gateRule}
+                        </span>
+                      </div>
+                    </button>
+
+                    <Collapse open={isExpanded}>
+                      <div
+                        id={`stage-detail-${stage.id}`}
+                        className={`px-5 pb-5 pt-1 border-t space-y-2.5 ${
+                          isLit ? 'border-slate-800/90' : 'border-slate-200'
+                        }`}
+                      >
+                        <p
+                          className={`text-xs leading-relaxed ${
+                            isLit ? 'text-slate-300' : 'text-slate-600'
+                          }`}
+                        >
+                          {stage.summary}
+                        </p>
+                        <div className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold px-2.5 py-1 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                          <span>{stage.outputMetric}</span>
+                        </div>
+                      </div>
+                    </Collapse>
                   </motion.article>
                 );
               })}
