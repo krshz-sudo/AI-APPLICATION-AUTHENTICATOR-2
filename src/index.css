@@ -100,3 +100,32 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Infinite Horizontal Workflow Marquee */
+@keyframes workflow-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-workflow-marquee {
+  display: flex;
+  width: max-content;
+  animation: workflow-marquee 30s linear infinite;
+  will-change: transform;
+}
+
+.animate-workflow-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-workflow-marquee {
+    animation: none;
+    transform: none;
+  }
+}
+

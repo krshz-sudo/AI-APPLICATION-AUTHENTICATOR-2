@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   ArrowRight,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
   ShieldAlert,
   BookOpenCheck,
   Database,
@@ -13,27 +10,20 @@ import {
   Scale,
   Menu,
   X,
-  Terminal,
-  ChevronDown,
   ScanText,
   Fingerprint,
   ShieldCheck,
-  RotateCcw,
-  Sparkles,
 } from 'lucide-react';
 import { Logo } from '../brand/Logo';
-import { DURATION, DURATION_MS, EASING, TRANSITION, SPRING } from '../../motion/tokens';
 import { useReducedMotionSafe } from '../../motion/useReducedMotionSafe';
-import { Collapse } from '../../motion/wrappers';
 import { useAuth } from '../../context/AuthContext';
 import { LandingHeroSpecimen } from './LandingHeroSpecimen';
 
 interface PipelineStageSpec {
   step: string;
+  gateLabel: string;
   id: string;
   title: string;
-  toolName: string;
-  gateRule: string;
   summary: string;
   outputMetric: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -46,238 +36,69 @@ interface PipelineStageSpec {
 const PIPELINE_STAGES: PipelineStageSpec[] = [
   {
     step: 'STAGE 01',
+    gateLabel: 'EXTRACTION GATE',
     id: 'ocr',
     title: 'Document Input & OCR Extraction',
-    toolName: 'ocrTool',
-    gateRule: 'Annexures 1–9',
     summary:
       'Parses multi-page institutional PDFs into 10 normalized statutory fields: PID, Application ID, Course, Intake, Built-up Area, Land Tenure, Fire NOC, and Faculty-Student Ratio.',
-    outputMetric: '10/10 Fields Structured',
+    outputMetric: '10/10 Fields Extracted',
     icon: ScanText,
-    accentGlow: 'shadow-[0_0_30px_rgba(20,184,166,0.2)]',
+    accentGlow: 'shadow-[0_0_25px_rgba(20,184,166,0.22)]',
     badgeTone: 'border-teal-500/40 bg-teal-500/20 text-teal-300',
     dotColor: 'bg-teal-400',
-    connectorGradient: 'from-teal-400 to-emerald-400',
+    connectorGradient: 'from-cyan-400 to-teal-400',
   },
   {
     step: 'STAGE 02',
+    gateLabel: 'STRUCTURAL GATE',
     id: 'template',
     title: 'Template & Mandatory Gate',
-    toolName: 'templateTool',
-    gateRule: 'APH-1.1 • APH-1.5',
     summary:
-      'Enforces hard structural preconditions before expensive downstream checks: Permanent Institute ID presence and strict DD/MM/YYYY statutory date formatting. Halts pipeline on violation.',
-    outputMetric: 'Gate Decision: YES / HALT',
+      'Enforces hard structural preconditions before downstream evaluations: Permanent Institute ID presence and strict statutory date formatting. Halts pipeline on missing fields.',
+    outputMetric: 'Gate Decision: PASS / HALT',
     icon: ShieldCheck,
-    accentGlow: 'shadow-[0_0_30px_rgba(16,185,129,0.2)]',
+    accentGlow: 'shadow-[0_0_25px_rgba(16,185,129,0.22)]',
     badgeTone: 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300',
     dotColor: 'bg-emerald-400',
-    connectorGradient: 'from-emerald-400 to-amber-400',
+    connectorGradient: 'from-emerald-400 to-teal-400',
   },
   {
     step: 'STAGE 03',
+    gateLabel: 'AUTHENTICITY GATE',
     id: 'authenticity',
     title: 'Forensic Authenticity Screening',
-    toolName: 'authenticityTool',
-    gateRule: 'AUTH-2.2 • AUTH-3.1',
     summary:
-      'Screens Error Level Analysis (ELA) compression residuals, perceptual lab photo hashes (pHash), and DigiLocker / State Fire Portal records. Surfaces elevated anomalies strictly as a risk indicator for officer inspection.',
-    outputMetric: 'Risk Indicator: 0.11–0.78',
+      'Screens Error Level Analysis (ELA) compression residuals, perceptual photo hashes, and digital issuer portal records for officer inspection.',
+    outputMetric: 'Forensic Risk Scoring',
     icon: Fingerprint,
-    accentGlow: 'shadow-[0_0_30px_rgba(245,158,11,0.2)]',
+    accentGlow: 'shadow-[0_0_25px_rgba(245,158,11,0.22)]',
     badgeTone: 'border-amber-500/40 bg-amber-500/20 text-amber-300',
     dotColor: 'bg-amber-400',
-    connectorGradient: 'from-amber-400 to-indigo-400',
+    connectorGradient: 'from-amber-400 to-orange-400',
   },
   {
     step: 'STAGE 04',
+    gateLabel: 'COMPLIANCE GATE',
     id: 'compliance',
     title: 'APH 2024–27 RAG Compliance',
-    toolName: 'ragRetrieveTool + complianceTool',
-    gateRule: 'APH-2.4 • APH-5.1 • APH-6.1',
     summary:
-      'Retrieves top-k AICTE Approval Process Handbook clauses from ChromaDB vector storage and runs deterministic rule evaluators to classify each field as Compliant, Non-Compliant, or Requires Human Review.',
+      'Retrieves vector handbook clauses from ChromaDB and runs deterministic evaluators to classify fields as Compliant, Non-Compliant, or Human Review.',
     outputMetric: 'Citation-Backed Verdict',
     icon: Scale,
-    accentGlow: 'shadow-[0_0_30px_rgba(99,102,241,0.2)]',
+    accentGlow: 'shadow-[0_0_25px_rgba(99,102,241,0.22)]',
     badgeTone: 'border-indigo-500/40 bg-indigo-500/20 text-indigo-300',
     dotColor: 'bg-indigo-400',
-    connectorGradient: 'from-indigo-400 to-teal-400',
-  },
-];
-
-interface ScenarioShowcaseCard {
-  id: 'A' | 'B' | 'C' | 'D' | 'E';
-  code: string;
-  institutionName: string;
-  pid: string;
-  appId: string;
-  applicationType: string;
-  statusLabel: 'Passed' | 'Failed' | 'Flagged' | 'Requires Human Review';
-  statusTone: 'green' | 'red' | 'amber' | 'indigo';
-  stageSummary: string;
-  fieldCounts: string;
-  ruleHighlights: string[];
-  description: string;
-}
-
-const SCENARIO_SHOWCASE: ScenarioShowcaseCard[] = [
-  {
-    id: 'A',
-    code: 'SCENARIO A',
-    institutionName: 'SAHYADRI INSTITUTE OF TECHNOLOGY AND MANAGEMENT',
-    pid: '1-4829104',
-    appId: '1-44642983101',
-    applicationType: 'Extension of Approval (EoA 2026-27)',
-    statusLabel: 'Passed',
-    statusTone: 'green',
-    stageSummary: 'OCR ✓ → Template ✓ → Authenticity ✓ → Compliance ✓',
-    fieldCounts: '10 Green • 0 Red • 0 Amber',
-    ruleHighlights: ['APH-6.1 (FSR 1:15)', 'APH-5.1 (NOC 2028)', 'APH-2.4 (180 Seats)'],
-    description:
-      'Fully compliant EoA dossier. DigiLocker Fire NOC and University affiliation verified with low forensic risk indicator (0.12) and 10/10 APH norm checks passed.',
-  },
-  {
-    id: 'B',
-    code: 'SCENARIO B',
-    institutionName: 'ARAVALLI COLLEGE OF ENGINEERING AND RESEARCH',
-    pid: '[MISSING]',
-    appId: '1-44642983192',
-    applicationType: 'Increase in Intake (2026-27)',
-    statusLabel: 'Failed',
-    statusTone: 'red',
-    stageSummary: 'OCR ✓ → Template ✕ (HALT) → Auth [Skipped] → RAG [Skipped]',
-    fieldCounts: '8 Green • 2 Red • 0 Amber',
-    ruleHighlights: ['APH-1.1 (Missing PID)', 'APH-1.5 (ISO Date 2028-04-15)'],
-    description:
-      'Halted deterministically at Stage 2 Template Gate due to missing mandatory Permanent Institute ID and non-standard YYYY-MM-DD Fire NOC date syntax.',
-  },
-  {
-    id: 'C',
-    code: 'SCENARIO C',
-    institutionName: 'DAKSHIN BHARAT INSTITUTE OF INFORMATION TECHNOLOGY',
-    pid: '1-6193058',
-    appId: '1-44642983245',
-    applicationType: 'Extension of Approval (EoA 2026-27)',
-    statusLabel: 'Flagged',
-    statusTone: 'amber',
-    stageSummary: 'OCR ✓ → Template ✓ → Authenticity ⚠ (0.78) → RAG [Skipped]',
-    fieldCounts: '10 Syntactic Green • Stage 3 Risk Indicator',
-    ruleHighlights: ['AUTH-2.2 (ELA Stamp Shift)', 'AUTH-3.1 (Lab Photo pHash Δ=2)'],
-    description:
-      'Surfaces an elevated forensic risk indicator (0.78) around the Fire NOC expiry box and duplicate lab photo hash. Routed for physical certificate inspection (risk indicator, never proof of forgery).',
-  },
-  {
-    id: 'D',
-    code: 'SCENARIO D • MAIN DEMO',
-    institutionName: 'NALANDA VISHWA ENGINEERING ACADEMY',
-    pid: '1-5592509',
-    appId: '1-44642983297',
-    applicationType: 'Extension of Approval (EoA 2026-27)',
-    statusLabel: 'Failed',
-    statusTone: 'red',
-    stageSummary: 'OCR ✓ → Template ✓ → Authenticity ✓ → Compliance ✕',
-    fieldCounts: '8 Green • 2 Red • 0 Amber',
-    ruleHighlights: ['APH-6.1 (FSR 1:25 > 1:20)', 'APH-5.1 (Expired NOC 15/03/2024)'],
-    description:
-      'Passes template and authenticity checks but fails Stage 4 RAG Compliance on two substantive norms. Demonstrates interactive (i) rule popovers, inline field editing, and instant Re-verify.',
-  },
-  {
-    id: 'E',
-    code: 'SCENARIO E',
-    institutionName: 'BRAHMAPUTRA FRONTIER POLYTECHNIC AND TECH CAMPUS',
-    pid: '1-8904112',
-    appId: '1-44642983388',
-    applicationType: 'EoA with Special Regional Provision (2026-27)',
-    statusLabel: 'Requires Human Review',
-    statusTone: 'indigo',
-    stageSummary: 'OCR ✓ → Template ✓ → Authenticity ✓ → Compliance ? (SHC)',
-    fieldCounts: '8 Green • 0 Red • 2 Amber',
-    ruleHighlights: ['APH-7.2 (Hill Council Land Grant)', 'AUD-2.5 (Provisional Intake)'],
-    description:
-      'Evaluates to INSUFFICIENT_EVIDENCE where no deterministic APH clause covers Autonomous Hill Council customary land tenure. Escalates cleanly to a Standing Hearing Committee officer.',
+    connectorGradient: 'from-indigo-400 to-purple-400',
   },
 ];
 
 export const LandingPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [expandedStageId, setExpandedStageId] = useState<string | null>('ocr');
   const { isAuthenticated } = useAuth();
   const {
-    prefersReducedMotion,
     fadeUp,
     staggerContainer,
-    scaleIn,
-    getTransition,
   } = useReducedMotionSafe();
-
-  // Sequential 4-stage pipeline scroll-into-view trigger (runs once, never loops)
-  const pipelineRef = useRef<HTMLDivElement | null>(null);
-  const isPipelineInView = useInView(pipelineRef, {
-    once: true,
-    amount: 0.25,
-  });
-  const [litStages, setLitStages] = useState<number>(prefersReducedMotion ? 4 : 0);
-
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      setLitStages(4);
-      return;
-    }
-    if (!isPipelineInView) return;
-
-    const stepMs = DURATION_MS.slow; // 240ms token step
-    const timers: Array<ReturnType<typeof setTimeout>> = [];
-
-    for (let i = 1; i <= 4; i++) {
-      const t = setTimeout(() => {
-        setLitStages(i);
-      }, (i - 1) * stepMs);
-      timers.push(t);
-    }
-
-    return () => {
-      timers.forEach(clearTimeout);
-    };
-  }, [isPipelineInView, prefersReducedMotion]);
-
-  const handleReplayPipeline = () => {
-    if (prefersReducedMotion) {
-      setLitStages(4);
-      return;
-    }
-    setLitStages(0);
-    setTimeout(() => setLitStages(1), 80);
-    setTimeout(() => setLitStages(2), 320);
-    setTimeout(() => setLitStages(3), 560);
-    setTimeout(() => setLitStages(4), 800);
-  };
-
-  const statusChipStyles = (tone: ScenarioShowcaseCard['statusTone']) => {
-    switch (tone) {
-      case 'green':
-        return 'bg-emerald-50 text-emerald-800 border-emerald-300';
-      case 'red':
-        return 'bg-red-50 text-red-800 border-red-300';
-      case 'amber':
-        return 'bg-amber-50 text-amber-900 border-amber-300';
-      case 'indigo':
-        return 'bg-indigo-50 text-indigo-900 border-indigo-300';
-    }
-  };
-
-  const statusChipIcon = (tone: ScenarioShowcaseCard['statusTone']) => {
-    switch (tone) {
-      case 'green':
-        return <CheckCircle2 className="w-3.5 h-3.5 text-status-green shrink-0" />;
-      case 'red':
-        return <XCircle className="w-3.5 h-3.5 text-status-red shrink-0" />;
-      case 'amber':
-        return <AlertTriangle className="w-3.5 h-3.5 text-status-amber shrink-0" />;
-      case 'indigo':
-        return <Scale className="w-3.5 h-3.5 text-status-indigo shrink-0" />;
-    }
-  };
 
   return (
     <div className="min-h-[100svh] flex flex-col bg-[#F8FAFC] text-slate-900">
@@ -305,19 +126,13 @@ export const LandingPage: React.FC = () => {
             {/* Desktop Anchor Links */}
             <nav
               aria-label="Landing Page Sections"
-              className="hidden lg:flex items-center gap-1"
+              className="hidden lg:flex items-center gap-2"
             >
               <a
                 href="#pipeline"
                 className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 tactile-press"
               >
                 4-Stage Pipeline
-              </a>
-              <a
-                href="#scenarios"
-                className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/70 tactile-press"
-              >
-                Scenarios A–E
               </a>
               <a
                 href="#trust"
@@ -355,7 +170,7 @@ export const LandingPage: React.FC = () => {
               )}
             </div>
 
-            {/* Mobile Hamburger Button (44x44px minimum tap target) */}
+            {/* Mobile Hamburger Button */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -379,13 +194,6 @@ export const LandingPage: React.FC = () => {
                   4-Stage Verification Pipeline
                 </a>
                 <a
-                  href="#scenarios"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-800 flex items-center"
-                >
-                  Scenarios A–E Showcase
-                </a>
-                <a
                   href="#trust"
                   onClick={() => setMobileMenuOpen(false)}
                   className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-800 flex items-center"
@@ -398,24 +206,24 @@ export const LandingPage: React.FC = () => {
                   <Link
                     to="/app"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-center bg-teal text-navy-900 flex items-center justify-center gap-1.5 tactile-press"
+                    className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold bg-teal text-navy-900 hover:bg-teal-400 flex items-center justify-between"
                   >
-                    <span>Open portal</span>
+                    <span>Open Scrutiny Portal</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-2 pt-1">
                     <Link
                       to="/signin"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-medium text-center text-slate-200 border border-slate-700 bg-navy-800 flex items-center justify-center tactile-press"
+                      className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-800 border border-slate-700 flex items-center justify-center"
                     >
                       Sign in
                     </Link>
                     <Link
                       to="/signup"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-center bg-teal text-navy-900 flex items-center justify-center tactile-press"
+                      className="min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold bg-teal text-navy-900 hover:bg-teal-400 flex items-center justify-center"
                     >
                       Sign up
                     </Link>
@@ -428,9 +236,9 @@ export const LandingPage: React.FC = () => {
       </header>
 
       <main className="flex-1">
-        {/* 2. Hero Section (min-h-[calc(100svh-6.5rem)] avoids 100vh mobile URL bar clipping) */}
-        <section className="relative bg-navy-900 text-white border-b border-slate-800 min-h-[calc(100svh-6.5rem)] flex items-center py-12 sm:py-16 lg:py-20">
-          {/* Subtle architectural grid hairline background */}
+        {/* 2. Hero Section */}
+        <section className="relative py-16 sm:py-20 lg:py-24 bg-navy-900 border-b border-slate-800 text-white overflow-hidden">
+          {/* Subtle Institutional Grid Texture */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -507,7 +315,7 @@ export const LandingPage: React.FC = () => {
                   Process Handbook.
                 </motion.p>
 
-                {/* Two CTAs (44px+ tap targets) */}
+                {/* Two CTAs */}
                 <motion.div
                   variants={fadeUp}
                   className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2"
@@ -567,13 +375,12 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 3. Animated 4-Stage Pipeline Section (OCR → Template → Authenticity → Compliance) */}
+        {/* 3. Animated 4-Stage Pipeline Section (Horizontal Automated Workflow Marquee) */}
         <section
           id="pipeline"
-          ref={pipelineRef}
-          className="py-16 sm:py-20 border-b border-slate-200 bg-white scroll-mt-16"
+          className="py-16 sm:py-20 border-b border-slate-200 bg-white scroll-mt-16 overflow-hidden"
         >
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 space-y-10">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 space-y-8">
             <motion.div
               variants={staggerContainer}
               initial="hidden"
@@ -586,7 +393,7 @@ export const LandingPage: React.FC = () => {
                   variants={fadeUp}
                   className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-teal-700"
                 >
-                  SEQUENTIAL VERIFICATION ARCHITECTURE
+                  CONTINUOUS VERIFICATION ARCHITECTURE
                 </motion.div>
                 <motion.h2
                   variants={fadeUp}
@@ -595,9 +402,8 @@ export const LandingPage: React.FC = () => {
                   4-Stage Deterministic Scrutiny Pipeline
                 </motion.h2>
                 <motion.p variants={fadeUp} className="text-sm sm:text-base text-slate-600">
-                  Each dossier progresses through four strictly ordered gates. Stages light up
-                  in sequence as they enter view; in production runs, a failure at Stage 2 or an
-                  elevated forensic risk indicator at Stage 3 halts downstream RAG execution.
+                  Each institutional dossier progresses through four strictly ordered gates in an automated sequence.
+                  A failure at Stage 2 or elevated forensic risk indicator at Stage 3 halts downstream RAG execution.
                 </motion.p>
               </div>
 
@@ -605,188 +411,95 @@ export const LandingPage: React.FC = () => {
                 variants={fadeUp}
                 className="flex items-center gap-3 self-start lg:self-auto flex-wrap"
               >
-                <button
-                  type="button"
-                  onClick={handleReplayPipeline}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-mono font-semibold transition-colors shadow-2xs tactile-press"
-                  title="Re-run the sequential pipeline verification animation"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-teal-700" />
-                  <span>Replay Flow</span>
-                </button>
-
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-navy-900 border border-teal-500/30 text-xs font-mono text-teal-300">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75 motion-reduce:hidden" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-teal" />
                   </span>
-                  <span>
-                    Active Sequence: <strong className="text-navy-900">{litStages}/4 Stages Lit</strong>
-                  </span>
+                  <span>Continuous Pipeline Workflow</span>
                 </div>
               </motion.div>
             </motion.div>
+          </div>
 
-            {/* 4-Stage Sequential Grid (Animated Interactive Stage Cards with Flow Bridges) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-start relative">
-              {PIPELINE_STAGES.map((stage, index) => {
-                const stageNumber = index + 1;
-                const isLit = litStages >= stageNumber;
-                const isExpanded = expandedStageId === stage.id;
+          {/* Continuous Horizontal Animated Track (Infinite Workflow Loop with Pause-On-Hover) */}
+          <div className="relative mt-10 w-full overflow-hidden py-4">
+            {/* Left and Right Subtle Gradient Fade Overlays */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-white via-white/80 to-transparent z-20"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-white via-white/80 to-transparent z-20"
+            />
+
+            <div className="animate-workflow-marquee flex items-center gap-6 px-4">
+              {/* Duplicate the array twice so it forms a continuous, seamless infinite loop */}
+              {[...PIPELINE_STAGES, ...PIPELINE_STAGES].map((stage, idx) => {
                 const StageIcon = stage.icon;
-
                 return (
-                  <div key={stage.id} className="relative">
-                    <motion.article
-                      variants={fadeUp}
-                      initial="hidden"
-                      animate={isPipelineInView ? 'visible' : 'hidden'}
-                      whileHover={prefersReducedMotion ? {} : { y: -4, transition: SPRING.gentle }}
-                      transition={getTransition({
-                        duration: DURATION.base,
-                        ease: EASING.easeOut,
-                        delay: prefersReducedMotion ? 0 : index * 0.06,
-                      })}
-                      className={`relative rounded-2xl border transition-all duration-300 overflow-hidden ${
-                        isLit
-                          ? isExpanded
-                            ? `bg-navy-900 text-white border-teal-400 ${stage.accentGlow} ring-1 ring-teal-400/40`
-                            : `bg-navy-900 text-white ${stage.accentGlow} border-slate-700 hover:border-teal-400`
-                          : 'bg-[#F8FAFC] text-slate-500 border-slate-200'
-                      }`}
+                  <div key={`${stage.id}-${idx}`} className="flex items-center gap-6 shrink-0">
+                    <div
+                      className={`relative w-[320px] sm:w-[360px] rounded-2xl bg-navy-900 border border-slate-700/80 p-5 shadow-panel text-white transition-all duration-300 hover:border-teal-400 ${stage.accentGlow} flex flex-col justify-between space-y-4`}
                     >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpandedStageId((prev) =>
-                            prev === stage.id ? null : stage.id
-                          )
-                        }
-                        aria-expanded={isExpanded}
-                        aria-controls={`stage-detail-${stage.id}`}
-                        className="w-full p-5 text-left flex flex-col justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal tactile-press"
-                      >
-                        {/* Top Animated Progress Bar */}
-                        <div className="w-full h-1.5 bg-slate-800/50 rounded-full overflow-hidden mb-4">
-                          <motion.div
-                            initial={{ scaleX: 0 }}
-                            animate={{ scaleX: isLit ? 1 : 0 }}
-                            transition={getTransition(TRANSITION.slowOut)}
-                            style={{ transformOrigin: 'left' }}
-                            className={`h-full w-full bg-gradient-to-r ${stage.connectorGradient}`}
-                          />
-                        </div>
-
-                        <div className="space-y-3 w-full">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              {/* Stage Luminous Icon */}
-                              <div
-                                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
-                                  isLit
-                                    ? 'bg-slate-800/90 border-slate-700 text-white shadow-xs'
-                                    : 'bg-slate-200/90 border-slate-300 text-slate-400'
-                                }`}
-                              >
-                                <StageIcon className={`w-4 h-4 ${isLit ? stage.dotColor.replace('bg-', 'text-') : 'text-slate-400'}`} />
-                              </div>
-                              <span
-                                className={`font-mono text-xs font-bold tracking-wider ${
-                                  isLit ? 'text-teal-300' : 'text-slate-400'
-                                }`}
-                              >
-                                {stage.step}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-1.5">
-                              <motion.span
-                                variants={scaleIn}
-                                initial="hidden"
-                                animate={isLit ? 'visible' : 'hidden'}
-                                className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                                  isLit
-                                    ? stage.badgeTone
-                                    : 'bg-slate-200 text-slate-500 border-slate-300'
-                                }`}
-                              >
-                                {isLit && (
-                                  <span className="relative flex h-1.5 w-1.5">
-                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${stage.dotColor} opacity-75 motion-reduce:hidden`} />
-                                    <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${stage.dotColor}`} />
-                                  </span>
-                                )}
-                                <span>{isLit ? 'ACTIVE GATE' : 'WAITING'}</span>
-                              </motion.span>
-                              <ChevronDown
-                                className={`w-4 h-4 transition-transform duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
-                                  isLit ? 'text-teal-400' : 'text-slate-400'
-                                } ${isExpanded ? 'rotate-180' : ''}`}
-                              />
-                            </div>
-                          </div>
-
-                          <h3
-                            className={`text-base font-bold tracking-tight leading-snug ${
-                              isLit ? 'text-white' : 'text-slate-700'
-                            }`}
-                          >
-                            {stage.title}
-                          </h3>
-                        </div>
-
+                      {/* Top Animated Color Bar */}
+                      <div className="w-full h-1.5 rounded-full overflow-hidden bg-slate-800">
                         <div
-                          className={`mt-4 pt-3 border-t w-full flex items-center justify-between gap-2 text-[11px] font-mono ${
-                            isLit
-                              ? 'border-slate-800 text-slate-300'
-                              : 'border-slate-200 text-slate-400'
-                          }`}
-                        >
-                          <span className="truncate">{stage.toolName}</span>
-                          <span
-                            className={`font-semibold shrink-0 ${
-                              isLit ? 'text-saffron' : 'text-slate-400'
-                            }`}
-                          >
-                            {stage.gateRule}
-                          </span>
-                        </div>
-                      </button>
-
-                      <Collapse open={isExpanded}>
-                        <div
-                          id={`stage-detail-${stage.id}`}
-                          className={`px-5 pb-5 pt-1 border-t space-y-2.5 ${
-                            isLit ? 'border-slate-800/90' : 'border-slate-200'
-                          }`}
-                        >
-                          <p
-                            className={`text-xs leading-relaxed ${
-                              isLit ? 'text-slate-300' : 'text-slate-600'
-                            }`}
-                          >
-                            {stage.summary}
-                          </p>
-                          <div className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold px-2.5 py-1 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
-                            <span>{stage.outputMetric}</span>
-                          </div>
-                        </div>
-                      </Collapse>
-                    </motion.article>
-
-                    {/* Connecting Flow Arrow Between Stages (desktop only) */}
-                    {index < PIPELINE_STAGES.length - 1 && (
-                      <div
-                        aria-hidden="true"
-                        className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-navy-800 border border-slate-700 items-center justify-center text-slate-400 shadow-md pointer-events-none"
-                      >
-                        <ArrowRight
-                          className={`w-3.5 h-3.5 transition-colors duration-200 ${
-                            isLit ? 'text-teal-400' : 'text-slate-600'
-                          }`}
+                          className={`h-full w-full bg-gradient-to-r ${stage.connectorGradient}`}
                         />
                       </div>
-                    )}
+
+                      <div className="space-y-3">
+                        {/* Header Row: Stage Icon, Step Badge, Gate Pill */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                              <StageIcon className={`w-4 h-4 ${stage.dotColor.replace('bg-', 'text-')}`} />
+                            </div>
+                            <span className="font-mono text-xs font-bold tracking-wider text-teal-300">
+                              {stage.step}
+                            </span>
+                          </div>
+
+                          <span
+                            className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1.5 ${stage.badgeTone}`}
+                          >
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${stage.dotColor} opacity-75 motion-reduce:hidden`} />
+                              <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${stage.dotColor}`} />
+                            </span>
+                            <span>{stage.gateLabel}</span>
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-base font-bold text-white tracking-tight leading-snug">
+                          {stage.title}
+                        </h3>
+
+                        {/* Plain English Summary */}
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          {stage.summary}
+                        </p>
+                      </div>
+
+                      {/* Bottom Status Metric Pill */}
+                      <div className="pt-3 border-t border-slate-800/90 flex items-center justify-between">
+                        <span className="text-[11px] font-mono text-slate-400">Verdict Metric:</span>
+                        <span className="font-mono text-[10px] font-bold px-2.5 py-1 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                          {stage.outputMetric}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Animated Flow Arrow Connecting Each Stage in the Continuous Loop */}
+                    <div
+                      aria-hidden="true"
+                      className="flex items-center justify-center w-8 h-8 rounded-full bg-navy-800 border border-slate-700 text-teal-400 shrink-0 shadow-md"
+                    >
+                      <ArrowRight className="w-4 h-4 animate-pulse" />
+                    </div>
                   </div>
                 );
               })}
@@ -794,139 +507,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 4. Scenario Showcase A–E Section */}
-        <section
-          id="scenarios"
-          className="py-16 sm:py-20 border-b border-slate-200 bg-[#F8FAFC] scroll-mt-16"
-        >
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 space-y-10">
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              className="flex flex-col lg:flex-row lg:items-end justify-between gap-4"
-            >
-              <div className="space-y-2 max-w-3xl">
-                <motion.div
-                  variants={fadeUp}
-                  className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-teal-700"
-                >
-                  STATUTORY INSTITUTIONAL BENCHMARK SUITE
-                </motion.div>
-                <motion.h2
-                  variants={fadeUp}
-                  className="text-2xl sm:text-3xl font-bold text-navy-900 tracking-tight"
-                >
-                  Scenarios A–E Dossier Verification Matrix
-                </motion.h2>
-                <motion.p variants={fadeUp} className="text-sm sm:text-base text-slate-600">
-                  Explore five pre-seeded institutional dossiers testing every regulatory
-                  disposition: full compliance, Stage 2 gate halt, Stage 3 forensic{' '}
-                  <strong className="font-semibold text-slate-800">risk indicator</strong>{' '}
-                  flagging, Stage 4 APH norm failure, and Standing Hearing Committee escalation.
-                </motion.p>
-              </div>
-
-              <motion.div variants={fadeUp}>
-                <Link
-                  to="/app"
-                  className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-navy-900 text-white hover:bg-navy-800 text-xs sm:text-sm font-semibold tactile-press"
-                >
-                  <span>Run All 5 Scenarios in /app</span>
-                  <ArrowRight className="w-4 h-4 text-teal-400" />
-                </Link>
-              </motion.div>
-            </motion.div>
-
-            {/* Scenario Cards Grid */}
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.15 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-            >
-              {SCENARIO_SHOWCASE.map((sc) => (
-                <motion.article
-                  key={sc.id}
-                  variants={fadeUp}
-                  className="flex"
-                >
-                  <Link
-                    to={`/app?scenario=${sc.id}`}
-                    aria-label={`Inspect ${sc.code}: ${sc.institutionName} (${sc.statusLabel})`}
-                    className={`group w-full bg-white rounded-xl border p-5 shadow-panel flex flex-col justify-between space-y-4 transition-colors duration-150 hover:border-navy-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal tactile-press ${
-                      sc.id === 'D'
-                        ? 'border-navy-900 ring-1 ring-navy-900/10'
-                        : 'border-slate-200'
-                    }`}
-                  >
-                    <div className="space-y-3">
-                      {/* Top Row: Scenario Code + Status Chip */}
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-xs font-bold uppercase tracking-wider text-navy-900">
-                          {sc.code}
-                        </span>
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusChipStyles(
-                            sc.statusTone
-                          )}`}
-                        >
-                          {statusChipIcon(sc.statusTone)}
-                          <span>{sc.statusLabel}</span>
-                        </span>
-                      </div>
-
-                      {/* Synthetic Institution Name */}
-                      <div>
-                        <h3 className="text-sm sm:text-base font-bold text-navy-900 leading-snug group-hover:text-teal-700 transition-colors">
-                          {sc.institutionName}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs font-mono text-slate-500 tabular-nums">
-                          <span>PID: {sc.pid}</span>
-                          <span>•</span>
-                          <span>App: {sc.appId}</span>
-                        </div>
-                      </div>
-
-                      {/* Stage Progression Pill */}
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-lg px-3 py-2 font-mono text-[11px] text-slate-700">
-                        <div className="font-semibold text-navy-900">{sc.stageSummary}</div>
-                        <div className="text-slate-500 mt-0.5">{sc.fieldCounts}</div>
-                      </div>
-
-                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                        {sc.description}
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 pt-2 border-t border-slate-100">
-                      {/* Cited Clauses */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {sc.ruleHighlights.map((rule) => (
-                          <span
-                            key={rule}
-                            className="font-mono text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
-                          >
-                            {rule}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="inline-flex items-center justify-between w-full min-h-[42px] px-3.5 py-2 rounded-lg bg-slate-100 group-hover:bg-navy-900 text-navy-900 group-hover:text-white text-xs font-semibold transition-colors">
-                        <span>Inspect Scenario {sc.id} Dossier</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.article>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* 5. Trust & Regulatory Governance Section */}
+        {/* 4. Trust & Regulatory Governance Section */}
         <section
           id="trust"
           className="py-16 sm:py-20 bg-white border-b border-slate-200 scroll-mt-16"
@@ -949,12 +530,11 @@ export const LandingPage: React.FC = () => {
                 variants={fadeUp}
                 className="text-2xl sm:text-3xl font-bold text-navy-900 tracking-tight"
               >
-                Built for Statutory Accountability, Never Black-Box Decisions
+                Governance, Citations &amp; Audit Integrity
               </motion.h2>
               <motion.p variants={fadeUp} className="text-sm sm:text-base text-slate-600">
-                Every verification check is anchored to a verifiable handbook clause, logged
-                to an inspectable SQL and REST telemetry trail, and governed by a human
-                Reviewing Officer.
+                Statutory scrutiny requires full transparency. Every automated extraction cites
+                its source clause, logs cryptographic hashes, and preserves human oversight.
               </motion.p>
             </motion.div>
 
@@ -962,10 +542,10 @@ export const LandingPage: React.FC = () => {
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+              viewport={{ once: true, amount: 0.15 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
-              {/* Pillar 1: APH 2024–27 Rule Citations */}
+              {/* Pillar 1: APH 2024-27 Norm Citations */}
               <motion.div
                 variants={fadeUp}
                 className="bg-[#F8FAFC] border border-slate-200 rounded-xl p-6 space-y-4 flex flex-col justify-between"
@@ -975,28 +555,25 @@ export const LandingPage: React.FC = () => {
                     <BookOpenCheck className="w-5 h-5" />
                   </div>
                   <h3 className="text-lg font-bold text-navy-900">
-                    1. APH 2024–27 Clause Citations
+                    1. 100% Citation-Backed Rules
                   </h3>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Every red or amber field badge links directly to its governing AICTE Approval
-                    Process Handbook 2024–27 chapter, clause, page number, and verbatim text
-                    snippet.
+                    Zero hallucinations. Compliance decisions cite specific chapters, pages, and
+                    rule IDs in the AICTE Approval Process Handbook (APH 2024–27).
                   </p>
                 </div>
 
-                <div className="bg-white border border-slate-200 rounded-lg p-3.5 font-mono text-xs space-y-1.5">
-                  <div className="flex items-center justify-between text-navy-900 font-semibold">
-                    <span>Rule APH-6.1 (Annexure-5)</span>
-                    <span className="text-teal-700">Page 119</span>
+                <div className="bg-slate-100 rounded-lg p-3 font-mono text-xs text-slate-700 space-y-1">
+                  <div className="text-[11px] text-slate-500 uppercase font-semibold">
+                    Core Scrutiny Norms
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-normal">
-                    &quot;Minimum Faculty-Student Ratio (FSR) for UG Engineering programmes shall
-                    be 1:20 across approved intake...&quot;
-                  </p>
+                  <div>• Rule APH-2.4 (Approved Intake &amp; NOC)</div>
+                  <div>• Rule APH-5.1 (Fire &amp; Life Safety NOC)</div>
+                  <div>• Rule APH-6.1 (Cadre &amp; FSR 1:20 Norm)</div>
                 </div>
               </motion.div>
 
-              {/* Pillar 2: Immutable Audit Log & Telemetry */}
+              {/* Pillar 2: Immutable Audit Log Trail */}
               <motion.div
                 variants={fadeUp}
                 className="bg-[#F8FAFC] border border-slate-200 rounded-xl p-6 space-y-4 flex flex-col justify-between"
@@ -1006,24 +583,23 @@ export const LandingPage: React.FC = () => {
                     <Database className="w-5 h-5" />
                   </div>
                   <h3 className="text-lg font-bold text-navy-900">
-                    2. Verifiable Audit &amp; SQL Log Trail
+                    2. Verifiable Audit Trail
                   </h3>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Every orchestrator step, ChromaDB vector similarity score, REST API call
-                    (<code className="font-mono text-xs">POST /api/verify</code>), and PostgreSQL
-                    record mutation is recorded with millisecond precision.
+                    Every extraction step, ChromaDB vector similarity score, and record mutation
+                    is recorded with millisecond precision in the immutable scrutiny ledger.
                   </p>
                 </div>
 
                 <div className="bg-navy-900 text-slate-200 rounded-lg p-3.5 font-mono text-[11px] space-y-1">
                   <div className="text-teal-400">
-                    [14:22:08] ragRetrieveTool → top-3 (0.91, 0.84, 0.79)
+                    [14:22:08] Semantic Retrieval → top-3 passages
                   </div>
                   <div className="text-amber-300">
-                    [14:22:09] complianceTool → NO (APH-6.1, APH-5.1)
+                    [14:22:09] Rule Evaluation → APH-6.1, APH-5.1
                   </div>
                   <div className="text-slate-400">
-                    [14:22:09] dbTool → INSERT verification_results
+                    [14:22:09] Audit Ledger → Record verified run
                   </div>
                 </div>
               </motion.div>
@@ -1063,7 +639,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* 6. Final CTA Section */}
+        {/* 5. Final CTA Section */}
         <section className="py-14 sm:py-16 bg-[#F8FAFC]">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
             <motion.div
@@ -1079,13 +655,13 @@ export const LandingPage: React.FC = () => {
                 </div>
                 <div className="space-y-1.5 max-w-2xl">
                   <div className="font-mono text-xs text-teal-400 uppercase tracking-widest font-semibold">
-                    READY FOR LIVE SCRUTINY SIMULATION
+                    REGULATORY SCRUTINY WORKSPACE
                   </div>
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-                    Inspect Scenarios A–E, Inline Re-Verification, and APH Citations
+                    Launch Deterministic Scrutiny &amp; Regulatory Verification
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-300">
-                    Launch the full AI Document Analyser workspace at <code className="font-mono text-teal-300">/app</code> to run the 4-stage pipeline, test Auto-Fix on Scenario D, and export official scrutiny reports.
+                    Launch the full AI Document Analyser workspace at <code className="font-mono text-teal-300">/app</code> to run the 4-stage pipeline, inspect dossiers, and export official scrutiny reports.
                   </p>
                 </div>
               </div>
@@ -1122,9 +698,6 @@ export const LandingPage: React.FC = () => {
               </Link>
               <a href="#pipeline" className="hover:text-teal-400 transition-colors">
                 4-Stage Pipeline
-              </a>
-              <a href="#scenarios" className="hover:text-teal-400 transition-colors">
-                Scenarios A–E
               </a>
               <a href="#trust" className="hover:text-teal-400 transition-colors">
                 APH 2024–27 Citations
