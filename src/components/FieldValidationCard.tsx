@@ -13,6 +13,8 @@ import {
   X,
 } from 'lucide-react';
 import { FieldKey, FieldValidationDetail } from '../types';
+import { SPRING } from '../motion/tokens';
+import { useReducedMotionSafe } from '../motion/useReducedMotionSafe';
 
 interface FieldValidationCardProps {
   field: FieldValidationDetail;
@@ -39,6 +41,16 @@ export const FieldValidationCard: React.FC<FieldValidationCardProps> = ({
   const [draftValue, setDraftValue] = useState(field.extractedValue);
   const [isReverifying, setIsReverifying] = useState(false);
   const [justTurnedGreen, setJustTurnedGreen] = useState(false);
+
+  // Phase 6 motion (reduced-motion aware): springy, origin-aware (i) popover + tick + ring
+  const { scaleIn, validationBadge, validationHighlightRing, prefersReducedMotion } =
+    useReducedMotionSafe();
+  const popoverVariants = prefersReducedMotion
+    ? scaleIn
+    : {
+        ...scaleIn,
+        visible: { opacity: 1, scale: 1, y: 0, transition: SPRING.snappy },
+      };
 
   useEffect(() => {
     setDraftValue(field.extractedValue);
@@ -121,27 +133,24 @@ export const FieldValidationCard: React.FC<FieldValidationCardProps> = ({
   }[field.status];
 
   return (
-    <motion.div
+    <div
       onMouseEnter={() => onHoverField(field.key)}
       onMouseLeave={() => onHoverField(null)}
-      animate={
-        justTurnedGreen
-          ? {
-              boxShadow: [
-                '0 0 0 0px rgba(22, 163, 74, 0)',
-                '0 0 0 6px rgba(22, 163, 74, 0.28)',
-                '0 0 0 0px rgba(22, 163, 74, 0)',
-              ],
-            }
-          : undefined
-      }
-      transition={{ duration: 1.1 }}
-      className={`relative rounded-xl border-2 p-4 transition-all ${
+      className={`relative rounded-xl border-2 p-4 transition-colors duration-200 ease-out ${
         statusStyles.cardBorder
       } ${statusStyles.cardBg} ${
         isHighlighted ? 'ring-2 ring-[#0B1F3A] shadow-md' : 'shadow-sm'
       }`}
     >
+      {/* Phase 6: composite-only re-verified highlight (opacity pulse on a static ring layer,
+          replaces the old 1.1s boxShadow keyframe that repainted every frame) */}
+      <motion.span
+        aria-hidden="true"
+        className="pointer-events-none absolute -inset-1 rounded-[14px] ring-2 ring-[#16A34A]"
+        variants={validationHighlightRing}
+        initial="idle"
+        animate={justTurnedGreen ? 'pulse' : 'idle'}
+      />
       {/* Top Row: Field Label + Status Badge + Action Icons */}
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 flex-wrap">
@@ -191,9 +200,9 @@ export const FieldValidationCard: React.FC<FieldValidationCardProps> = ({
           {field.status === 'correct' && (
             <motion.div
               key={`tick-${field.extractedValue}`}
-              initial={{ scale: 0.4, opacity: 0 }}
-              animate={{ scale: [0.4, 1.25, 1], opacity: 1 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
+              variants={validationBadge}
+              initial="hidden"
+              animate="visible"
               className="w-7 h-7 rounded-full bg-[#16A34A] text-white flex items-center justify-center shadow-sm"
               title="Field complies with regulatory guidelines"
             >
@@ -217,7 +226,7 @@ export const FieldValidationCard: React.FC<FieldValidationCardProps> = ({
                   setIsPopoverPinned(next);
                   setIsPopoverOpen(next);
                 }}
-                className="w-7 h-7 rounded-full bg-[#DC2626] text-white flex items-center justify-center shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform hover:scale-105"
+                className="w-7 h-7 rounded-full bg-[#DC2626] text-white flex items-center justify-center shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors"
                 title="Click or hover for regulatory rule citation"
               >
                 <Info className="w-4 h-4" />
@@ -327,10 +336,11 @@ export const FieldValidationCard: React.FC<FieldValidationCardProps> = ({
       <AnimatePresence>
         {field.status === 'wrong' && field.popover && isPopoverOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.16 }}
+            variants={popoverVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            style={{ transformOrigin: 'top right' }}
             className="mt-3 rounded-xl bg-white border-2 border-[#DC2626] shadow-xl p-4 text-slate-800 space-y-3 z-30 relative"
           >
             <div className="flex items-start justify-between gap-2 border-b border-red-100 pb-2.5">
@@ -429,6 +439,6 @@ export const FieldValidationCard: React.FC<FieldValidationCardProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };

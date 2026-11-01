@@ -58,8 +58,8 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
         onMouseEnter={() => onSelectField?.(f.key)}
         onMouseLeave={() => onSelectField?.(null)}
         onClick={() => onSelectField?.(f.key)}
-        className={`relative rounded-lg border-2 p-2.5 transition-all cursor-pointer ${boxColor} ${
-          isActive ? 'ring-2 ring-[#0B1F3A] scale-[1.01] shadow-md z-10' : ''
+        className={`relative rounded-lg border-2 p-2.5 transition-colors duration-100 cursor-pointer ${boxColor} ${
+          isActive ? 'ring-2 ring-[#0B1F3A] shadow-md z-10' : ''
         } ${idx === 0 || idx === 7 ? 'sm:col-span-2' : ''}`}
       >
         <div className="flex items-center justify-between gap-1 mb-0.5 flex-wrap">

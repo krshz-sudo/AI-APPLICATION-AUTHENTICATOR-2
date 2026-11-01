@@ -1,7 +1,10 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { FileText, X, BookOpen, CheckCircle2, Sparkles } from 'lucide-react';
 import { CorpusEntry } from '../types';
 import { MOCK_CORPUS } from '../mock/corpus';
+import { TRANSITION } from '../motion/tokens';
+import { useReducedMotionSafe } from '../motion/useReducedMotionSafe';
 
 interface PdfSnippetModalProps {
   ruleId: string | null;
@@ -12,7 +15,7 @@ export const PdfSnippetModal: React.FC<PdfSnippetModalProps> = ({
   ruleId,
   onClose,
 }) => {
-  if (!ruleId) return null;
+  const { scaleIn, getTransition } = useReducedMotionSafe();
 
   const entry: CorpusEntry =
     MOCK_CORPUS.find((e) => e.ruleId === ruleId) || MOCK_CORPUS[0];
@@ -22,14 +25,26 @@ export const PdfSnippetModal: React.FC<PdfSnippetModalProps> = ({
   ).slice(0, 2);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <AnimatePresence>
+      {ruleId && (
+        <motion.div
+          key="pdf-snippet-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={getTransition(TRANSITION.fastOut)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4"
+          onClick={onClose}
+        >
+          <motion.div
+            key={ruleId}
+            variants={scaleIn}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
         {/* Top bar */}
         <div className="bg-[#0B1F3A] text-white px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -150,7 +165,9 @@ export const PdfSnippetModal: React.FC<PdfSnippetModalProps> = ({
             Close Snippet
           </button>
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

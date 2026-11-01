@@ -58,7 +58,7 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
             <div
               key={entry.ruleId}
               onClick={() => onOpenPdfSnippet(entry.ruleId)}
-              className="p-3.5 rounded-xl border border-slate-200 hover:border-[#14B8A6] bg-slate-50/60 hover:bg-white cursor-pointer transition-all space-y-1.5"
+              className="p-3.5 rounded-xl border border-slate-200 hover:border-[#14B8A6] bg-slate-50/60 hover:bg-white cursor-pointer transition-colors duration-150 space-y-1.5"
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-1.5">
