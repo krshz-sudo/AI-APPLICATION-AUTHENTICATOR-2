@@ -4,13 +4,13 @@ import {
   Play,
   ArrowRight,
   ChevronDown,
-  ChevronUp,
   FileCheck,
   File,
 } from 'lucide-react';
 import { FieldValidationDetail } from '../types';
 import { buildInitialScenarioFields } from '../mock/tools';
 import { DocumentSpecimen } from './DocumentSpecimen';
+import { Collapse } from '../motion/wrappers';
 
 interface UploadScreenProps {
   onStartVerification: (customFile?: {
@@ -97,7 +97,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
           <div className="w-12 h-12 rounded-xl bg-teal-500/10 text-teal flex items-center justify-center mx-auto mb-3">
             <UploadCloud className="w-6 h-6 text-teal" />
           </div>
-          <p className="text-sm font-semibold text-slate-800">
+          <p className="text-sm font-semibold text-slate-800 break-words [overflow-wrap:anywhere]">
             {uploadedFile
               ? `Attached: ${uploadedFile.name} (${uploadedFile.size})`
               : 'Drag & drop an application file (PDF, JPG, PNG), or browse'}
@@ -150,26 +150,26 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
           className="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors duration-150"
           aria-expanded={isSpecimenOpen}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0 [overflow-wrap:anywhere]">
             <File className="w-4 h-4 text-teal" />
             <span className="font-semibold text-sm text-slate-900">
               Document Specimen Preview
             </span>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-500 truncate max-w-[200px] sm:max-w-[340px]">
               ({uploadedFile?.name || defaultFileName})
             </span>
           </div>
           <div className="flex items-center gap-1 text-xs text-slate-500">
             <span>{isSpecimenOpen ? 'Hide' : 'Show preview'}</span>
-            {isSpecimenOpen ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
+                isSpecimenOpen ? 'rotate-180' : ''
+              }`}
+            />
           </div>
         </button>
 
-        {isSpecimenOpen && (
+        <Collapse open={isSpecimenOpen}>
           <div className="p-5 border-t border-slate-200 bg-slate-50/50">
             <DocumentSpecimen
               fileName={uploadedFile?.name || defaultFileName}
@@ -179,7 +179,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
               showBoundingBoxes={true}
             />
           </div>
-        )}
+        </Collapse>
       </div>
     </div>
   );

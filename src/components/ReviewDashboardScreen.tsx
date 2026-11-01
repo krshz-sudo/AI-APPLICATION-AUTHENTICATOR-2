@@ -23,6 +23,13 @@ import {
 import { SCENARIO_META } from '../mock/tools';
 import { DocumentSpecimen } from './DocumentSpecimen';
 import { FieldValidationCard } from './FieldValidationCard';
+import {
+  FadeUpOnMount,
+  ScenarioFade,
+  StaggerItem,
+  StaggerList,
+  StatusSwap,
+} from '../motion/wrappers';
 
 interface ReviewDashboardScreenProps {
   run: VerificationRun;
@@ -132,7 +139,7 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
 
     return (
       <div
-        className={`flex-1 rounded-xl border p-3 flex items-center justify-between gap-2 ${item.color}`}
+        className={`flex-1 rounded-xl border p-3 flex items-center justify-between gap-2 transition-colors duration-200 ease-out ${item.color}`}
       >
         <div>
           <div className="text-[11px] font-bold uppercase tracking-wider opacity-75">
@@ -140,10 +147,13 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
           </div>
           <div className="text-xs font-medium mt-0.5">{detail}</div>
         </div>
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/90 border border-current/15 font-mono text-xs font-bold shrink-0">
+        <StatusSwap
+          swapKey={`${label}-${state}`}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/90 border border-current/15 font-mono text-xs font-bold shrink-0"
+        >
           {item.icon}
           <span>{item.text}</span>
-        </span>
+        </StatusSwap>
       </div>
     );
   };
@@ -185,17 +195,20 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
     <div className="space-y-6">
       {/* Top Overall Status Banner & Quick Scenario Switcher */}
       <div
-        className={`rounded-2xl border-2 p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 ${ob.banner}`}
+        className={`rounded-2xl border-2 p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors duration-200 ease-out ${ob.banner}`}
       >
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 shrink-0">{ob.icon}</div>
-          <div>
+        <div className="flex items-start gap-3 min-w-0">
+          <StatusSwap swapKey={`icon-${run.overallStatus}`} className="mt-0.5 shrink-0 inline-flex">
+            {ob.icon}
+          </StatusSwap>
+          <div className="min-w-0 [overflow-wrap:anywhere]">
             <div className="flex items-center gap-2 flex-wrap">
-              <span
+              <StatusSwap
+                swapKey={`badge-${run.overallStatus}`}
                 className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded ${ob.bg}`}
               >
                 STATUS: {run.overallStatus}
-              </span>
+              </StatusSwap>
               <span className="text-xs font-mono font-semibold opacity-80">
                 App ID: {run.applicationId} • Run: {run.id}
               </span>
@@ -239,6 +252,8 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
         </div>
       </div>
 
+      {/* Phase 6: scenario A–E switch fades the workspace in (opacity only, 140ms) */}
+      <ScenarioFade scenarioKey={run.scenarioId} className="space-y-6">
       {/* Stage-Summary Bar (Template / Authenticity / Compliance) */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
@@ -378,20 +393,21 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
           </div>
 
           {/* List of 7 Validated Field Cards */}
-          <div className="space-y-3.5">
+          <StaggerList className="space-y-3.5">
             {run.fields.map((field) => (
-              <FieldValidationCard
-                key={field.key}
-                field={field}
-                isHighlighted={highlightedField === field.key}
-                onHoverField={setHighlightedField}
-                onReverifyField={onReverifyField}
-                onOpenPdfSnippet={onOpenPdfSnippet}
-                onToggleMarkForReview={onToggleMarkForReview}
-                defaultOpenPopover={field.key === firstWrongKey}
-              />
+              <StaggerItem key={field.key}>
+                <FieldValidationCard
+                  field={field}
+                  isHighlighted={highlightedField === field.key}
+                  onHoverField={setHighlightedField}
+                  onReverifyField={onReverifyField}
+                  onOpenPdfSnippet={onOpenPdfSnippet}
+                  onToggleMarkForReview={onToggleMarkForReview}
+                  defaultOpenPopover={field.key === firstWrongKey}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerList>
 
           {/* Reviewer Notes & Officer Action Bar ("Approve", "Request Correction", "Escalate") */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
@@ -415,19 +431,21 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
             />
 
             {decisionFeedback && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
-                  {decisionFeedback}
-                </span>
-                <button
-                  type="button"
-                  onClick={onGoToReport}
-                  className="underline font-bold text-[#0B1F3A]"
-                >
-                  Open Final Report &rarr;
-                </button>
-              </div>
+              <FadeUpOnMount>
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#16A34A]" />
+                    {decisionFeedback}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onGoToReport}
+                    className="underline font-bold text-[#0B1F3A]"
+                  >
+                    Open Final Report &rarr;
+                  </button>
+                </div>
+              </FadeUpOnMount>
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -472,6 +490,7 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
           </div>
         </div>
       </div>
+      </ScenarioFade>
     </div>
   );
 };

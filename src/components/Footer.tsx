@@ -3,7 +3,7 @@ import { Info } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-navy-900 text-slate-400 border-t border-slate-800 mt-auto no-print">
+    <footer className="bg-navy-900 text-slate-400 border-t border-slate-800 mt-auto no-print safe-bottom">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-3 mb-3 border-b border-slate-800 text-xs">
           <div className="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-800">

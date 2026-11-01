@@ -145,7 +145,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               <h1 className="text-xl sm:text-2xl font-bold">
                 Final Compliance &amp; Authenticity Audit Dossier
               </h1>
-              <p className="text-xs text-slate-300 font-mono">
+              <p className="text-xs text-slate-300 font-mono break-words [overflow-wrap:anywhere]">
                 Verification Run: {run.id} &bull; Application ID: {run.applicationId}{' '}
                 &bull; Document: {run.fileName}
               </p>
@@ -265,7 +265,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                       <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">
                         {f.label}
                       </td>
-                      <td className="py-3 px-4 font-mono font-semibold text-slate-900">
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-900 break-words [overflow-wrap:anywhere]">
                         {f.extractedValue}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">

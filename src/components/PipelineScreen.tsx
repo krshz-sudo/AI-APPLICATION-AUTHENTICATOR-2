@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Scan,
   ShieldAlert,
@@ -13,7 +13,6 @@ import {
   Server,
   HardDrive,
   ChevronDown,
-  ChevronUp,
   ArrowRight,
   RotateCcw,
   FileText,
@@ -34,6 +33,9 @@ import { VECTOR_DB_LABEL } from '../mock/vectorStore';
 import { SCENARIO_META } from '../mock/tools';
 import { DocumentSpecimen } from './DocumentSpecimen';
 import { FieldValidationCard } from './FieldValidationCard';
+import { SPRING } from '../motion/tokens';
+import { useReducedMotionSafe } from '../motion/useReducedMotionSafe';
+import { Collapse, FadeUpOnMount, StatusSwap } from '../motion/wrappers';
 
 interface PipelineScreenProps {
   run: VerificationRun;
@@ -66,6 +68,7 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
 }) => {
   const [apiPanelOpen, setApiPanelOpen] = useState(true);
   const [highlightedField, setHighlightedField] = useState<FieldKey | null>(null);
+  const { slideIn, prefersReducedMotion } = useReducedMotionSafe();
 
   const activeRun = progress?.partialRun || run;
   const stages = activeRun.stages;
@@ -147,11 +150,15 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
     return (
       <div className="flex flex-col items-center justify-center px-1 py-2 shrink-0">
         <div
-          className={`w-11 h-11 rotate-45 rounded-lg border-2 flex items-center justify-center shadow-sm transition-all ${colorClass}`}
+          className={`w-11 h-11 rotate-45 rounded-lg border-2 flex items-center justify-center shadow-sm transition-colors duration-200 ease-out ${colorClass}`}
           title={question}
         >
           <span className="-rotate-45 text-[10px] font-mono font-bold">
-            {decision === 'PENDING' ? '?' : decision === 'SKIPPED' ? '—' : decision}
+            {/* Phase 6: decision label scales in when the gate locks (inner span, so the
+                rotate-45 transforms on the diamond are never overwritten) */}
+            <StatusSwap swapKey={decision} className="inline-block">
+              {decision === 'PENDING' ? '?' : decision === 'SKIPPED' ? '—' : decision}
+            </StatusSwap>
           </span>
         </div>
         <p className="text-[10px] font-medium text-slate-600 text-center max-w-[120px] mt-2 leading-tight">
@@ -192,7 +199,7 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
     <div className="space-y-6">
       {/* Top Status & Pipeline Control Bar */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0 [overflow-wrap:anywhere]">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-mono font-bold uppercase px-2 py-0.5 rounded bg-navy-900 text-teal">
               SEQUENTIAL PIPELINE
@@ -247,15 +254,17 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
             const st = getStageBadge(stages.ocr.state);
             return (
               <div
-                className={`flex-1 rounded-xl border-2 p-3.5 transition-all ${st.border} ${st.bg}`}
+                className={`flex-1 rounded-xl border-2 p-3.5 transition-colors duration-200 ease-out ${st.border} ${st.bg}`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <span className="text-[10px] font-mono font-bold uppercase text-slate-500">
                     STAGE 1 • ocrTool
                   </span>
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 font-bold flex items-center gap-1">
-                    {st.icon}
-                    <span className={st.text}>{st.label}</span>
+                    <StatusSwap swapKey={st.label} className="inline-flex items-center gap-1">
+                      {st.icon}
+                      <span className={st.text}>{st.label}</span>
+                    </StatusSwap>
                   </span>
                 </div>
                 <h3 className="font-bold text-sm text-slate-900">
@@ -280,15 +289,17 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
             const st = getStageBadge(stages.template.state);
             return (
               <div
-                className={`flex-1 rounded-xl border-2 p-3.5 transition-all ${st.border} ${st.bg}`}
+                className={`flex-1 rounded-xl border-2 p-3.5 transition-colors duration-200 ease-out ${st.border} ${st.bg}`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <span className="text-[10px] font-mono font-bold uppercase text-slate-500">
                     STAGE 2 • templateTool
                   </span>
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 font-bold flex items-center gap-1">
-                    {st.icon}
-                    <span className={st.text}>{st.label}</span>
+                    <StatusSwap swapKey={st.label} className="inline-flex items-center gap-1">
+                      {st.icon}
+                      <span className={st.text}>{st.label}</span>
+                    </StatusSwap>
                   </span>
                 </div>
                 <h3 className="font-bold text-sm text-slate-900">
@@ -311,15 +322,17 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
             const st = getStageBadge(stages.authenticity.state);
             return (
               <div
-                className={`flex-1 rounded-xl border-2 p-3.5 transition-all ${st.border} ${st.bg}`}
+                className={`flex-1 rounded-xl border-2 p-3.5 transition-colors duration-200 ease-out ${st.border} ${st.bg}`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <span className="text-[10px] font-mono font-bold uppercase text-slate-500">
                     STAGE 3 • authenticityTool
                   </span>
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 font-bold flex items-center gap-1">
-                    {st.icon}
-                    <span className={st.text}>{st.label}</span>
+                    <StatusSwap swapKey={st.label} className="inline-flex items-center gap-1">
+                      {st.icon}
+                      <span className={st.text}>{st.label}</span>
+                    </StatusSwap>
                   </span>
                 </div>
                 <h3 className="font-bold text-sm text-slate-900">
@@ -346,15 +359,17 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
             const st = getStageBadge(stages.compliance.state);
             return (
               <div
-                className={`flex-1 rounded-xl border-2 p-3.5 transition-all ${st.border} ${st.bg}`}
+                className={`flex-1 rounded-xl border-2 p-3.5 transition-colors duration-200 ease-out ${st.border} ${st.bg}`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <span className="text-[10px] font-mono font-bold uppercase text-slate-500">
                     STAGE 4 • ragRetrieve + compliance
                   </span>
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 font-bold flex items-center gap-1">
-                    {st.icon}
-                    <span className={st.text}>{st.label}</span>
+                    <StatusSwap swapKey={st.label} className="inline-flex items-center gap-1">
+                      {st.icon}
+                      <span className={st.text}>{st.label}</span>
+                    </StatusSwap>
                   </span>
                 </div>
                 <h3 className="font-bold text-sm text-slate-900">
@@ -589,7 +604,7 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
                       <div
                         key={p.ruleId}
                         onClick={() => onOpenPdfSnippet(p.ruleId)}
-                        className="p-3 rounded-xl border border-slate-200 hover:border-[#14B8A6] bg-slate-50/70 hover:bg-white cursor-pointer transition-all"
+                        className="p-3 rounded-xl border border-slate-200 hover:border-[#14B8A6] bg-slate-50/70 hover:bg-white cursor-pointer transition-colors duration-150"
                       >
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -689,15 +704,16 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
                 </span>
               </div>
               {activeRun.fields.map((field) => (
-                <FieldValidationCard
-                  key={field.key}
-                  field={field}
-                  isHighlighted={highlightedField === field.key}
-                  onHoverField={setHighlightedField}
-                  onReverifyField={onReverifyField}
-                  onOpenPdfSnippet={onOpenPdfSnippet}
-                  onToggleMarkForReview={onToggleMarkForReview}
-                />
+                <FadeUpOnMount key={field.key}>
+                  <FieldValidationCard
+                    field={field}
+                    isHighlighted={highlightedField === field.key}
+                    onHoverField={setHighlightedField}
+                    onReverifyField={onReverifyField}
+                    onOpenPdfSnippet={onOpenPdfSnippet}
+                    onToggleMarkForReview={onToggleMarkForReview}
+                  />
+                </FadeUpOnMount>
               ))}
             </div>
           </div>
@@ -707,30 +723,41 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
         <div className="lg:col-span-4 space-y-5">
           {/* 1. Agent Activity Log Panel */}
           <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 shadow-lg overflow-hidden">
-            <div className="px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between">
+            <div className="px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-teal" />
+                <Terminal className="w-4 h-4 text-teal shrink-0" />
                 <h3 className="font-bold text-xs uppercase tracking-wider">
                   Agent Activity Log
                 </h3>
               </div>
+              <span className="text-[10px] font-mono text-slate-400 tabular-nums">
+                {agentLogs.length > 100
+                  ? `Latest 100 of ${agentLogs.length}`
+                  : `${agentLogs.length} entries`}
+              </span>
             </div>
-            <div className="p-3 max-h-72 overflow-y-auto custom-scrollbar space-y-2 font-mono text-xs">
+            <div className="p-3 max-h-72 overflow-y-auto overscroll-contain custom-scrollbar space-y-2 font-mono text-xs">
               {agentLogs.length === 0 ? (
                 <p className="text-slate-400 text-xs p-2">No agent calls logged yet.</p>
               ) : (
-                agentLogs.map((log) => (
-                  <motion.div
-                    key={log.id}
-                    initial={{ opacity: 0, x: 8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1"
-                  >
-                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                <AnimatePresence initial={false}>
+                  {agentLogs.slice(0, 100).map((log) => (
+                    <motion.div
+                      key={log.id}
+                      layout={agentLogs.length <= 40 ? 'position' : false}
+                      variants={slideIn}
+                      initial="hidden"
+                      animate="visible"
+                      transition={{
+                        layout: prefersReducedMotion ? { duration: 0 } : SPRING.criticallyDamped,
+                      }}
+                      className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1 [overflow-wrap:anywhere]"
+                    >
+                    <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400">
                       <span className="text-[#14B8A6] font-semibold">
                         {log.agent} &rarr; {log.tool}()
                       </span>
-                      <span>
+                      <span className="shrink-0 tabular-nums">
                         {log.timestamp}{' '}
                         {log.durationMs > 0 ? `(${log.durationMs}ms)` : ''}
                       </span>
@@ -742,7 +769,8 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
                       {log.detail}
                     </div>
                   </motion.div>
-                ))
+                  ))}
+                </AnimatePresence>
               )}
             </div>
           </div>
@@ -755,90 +783,106 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
               className="w-full px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between text-left"
             >
               <div className="flex items-center gap-2">
-                <Server className="w-4 h-4 text-amber-500" />
+                <Server className="w-4 h-4 text-amber-500 shrink-0" />
                 <h3 className="font-bold text-xs uppercase tracking-wider">
                   HTTP / JSON API Log
                 </h3>
               </div>
               <div className="flex items-center gap-2">
-                {apiPanelOpen ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
-                )}
+                <span className="text-[10px] font-mono text-slate-400 tabular-nums">
+                  {apiLogs.length}
+                </span>
+                {/* Phase 6: single chevron rotates instead of swapping icons */}
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 transition-transform duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
+                    apiPanelOpen ? 'rotate-180' : ''
+                  }`}
+                />
               </div>
             </button>
 
-            {apiPanelOpen && (
-              <div className="p-3 max-h-80 overflow-y-auto custom-scrollbar space-y-2.5 font-mono text-[11px]">
-                {apiLogs.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white">
-                        <span className="text-[#14B8A6]">{entry.method}</span>{' '}
-                        {entry.endpoint}
-                      </span>
-                      <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          entry.statusCode === 200
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                        }`}
-                      >
-                        HTTP {entry.statusCode} • {entry.latencyMs}ms
-                      </span>
+            <Collapse open={apiPanelOpen}>
+              <div className="p-3 max-h-80 overflow-y-auto overscroll-contain custom-scrollbar space-y-2.5 font-mono text-[11px]">
+                {apiLogs.length === 0 ? (
+                  <p className="text-slate-400 text-xs p-2">
+                    No HTTP API requests logged yet.
+                  </p>
+                ) : (
+                  apiLogs.slice(0, 100).map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-white">
+                          <span className="text-[#14B8A6]">{entry.method}</span>{' '}
+                          {entry.endpoint}
+                        </span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 tabular-nums ${
+                            entry.statusCode === 200
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                          }`}
+                        >
+                          HTTP {entry.statusCode} • {entry.latencyMs}ms
+                        </span>
+                      </div>
+                      <div className="text-slate-400">
+                        <span className="text-slate-500">Req: </span>
+                        <code className="text-slate-300 break-all">
+                          {JSON.stringify(entry.requestJson)}
+                        </code>
+                      </div>
+                      <div className="text-slate-400">
+                        <span className="text-slate-500">Res: </span>
+                        <code className="text-[#14B8A6] break-all">
+                          {JSON.stringify(entry.responseJson)}
+                        </code>
+                      </div>
                     </div>
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Req: </span>
-                      <code className="text-slate-300 break-all">
-                        {JSON.stringify(entry.requestJson)}
-                      </code>
-                    </div>
-                    <div className="text-slate-400">
-                      <span className="text-slate-500">Res: </span>
-                      <code className="text-[#14B8A6] break-all">
-                        {JSON.stringify(entry.responseJson)}
-                      </code>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-            )}
+            </Collapse>
           </div>
 
           {/* 3. Mini Fake PostgreSQL Log Panel (src/mock/postgres.ts) */}
           <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 shadow-lg overflow-hidden">
-            <div className="px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between">
+            <div className="px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <HardDrive className="w-4 h-4 text-sky-400" />
+                <HardDrive className="w-4 h-4 text-sky-400 shrink-0" />
                 <h3 className="font-bold text-xs uppercase tracking-wider">
                   PostgreSQL Transaction Log
                 </h3>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                SQL
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 tabular-nums">
+                SQL ({sqlLogs.length})
               </span>
             </div>
-            <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar space-y-2 font-mono text-[11px]">
-              {sqlLogs.map((sql) => (
-                <div
-                  key={sql.id}
-                  className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1"
-                >
-                  <div className="flex items-center justify-between text-[10px] text-slate-400">
-                    <span className="text-sky-400 font-bold">
-                      {sql.operation} &bull; {sql.table}
-                    </span>
-                    <span>{sql.timestamp}</span>
+            <div className="p-3 max-h-64 overflow-y-auto overscroll-contain custom-scrollbar space-y-2 font-mono text-[11px]">
+              {sqlLogs.length === 0 ? (
+                <p className="text-slate-400 text-xs p-2">
+                  No SQL transactions logged yet.
+                </p>
+              ) : (
+                sqlLogs.slice(0, 100).map((sql) => (
+                  <div
+                    key={sql.id}
+                    className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1"
+                  >
+                    <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400">
+                      <span className="text-sky-400 font-bold">
+                        {sql.operation} &bull; {sql.table}
+                      </span>
+                      <span className="shrink-0 tabular-nums">{sql.timestamp}</span>
+                    </div>
+                    <div className="text-slate-200 break-all leading-relaxed">
+                      {sql.sql}
+                    </div>
                   </div>
-                  <div className="text-slate-200 break-all leading-relaxed">
-                    {sql.sql}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

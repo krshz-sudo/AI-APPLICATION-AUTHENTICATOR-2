@@ -171,7 +171,30 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredRuns.map((r) => {
+              {filteredRuns.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-10 px-4 text-center text-slate-500">
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-slate-700">
+                        No verification runs match the current search or filter criteria.
+                      </p>
+                      {(searchTerm || statusFilter !== 'ALL') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchTerm('');
+                            setStatusFilter('ALL');
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                        >
+                          Reset search &amp; status filters
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredRuns.map((r) => {
                 const institution =
                   r.fields.find((f) => f.key === 'institutionName')
                     ?.extractedValue ||
@@ -189,8 +212,8 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                       isCurrent ? 'bg-teal-50/40' : ''
                     }`}
                   >
-                    <td className="py-3.5 px-4 font-mono">
-                      <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                    <td className="py-3.5 px-4 font-mono max-w-[220px] [overflow-wrap:anywhere]">
+                      <div className="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                         <span>{r.applicationId}</span>
                         {isCurrent && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#14B8A6] text-[#0B1F3A] font-sans font-bold">
@@ -198,12 +221,12 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-[11px] text-slate-500 break-words [overflow-wrap:anywhere]">
                         {r.id} &bull; {r.fileName}
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900 max-w-[260px] break-words [overflow-wrap:anywhere]">
                       {institution}
                     </td>
 
@@ -249,7 +272,8 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
                     </td>
                   </tr>
                 );
-              })}
+              })
+              )}
             </tbody>
           </table>
         </div>
@@ -259,31 +283,37 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
       <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 p-5 shadow-lg space-y-3">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <HardDrive className="w-4 h-4 text-sky-400" />
+            <HardDrive className="w-4 h-4 text-sky-400 shrink-0" />
             <h2 className="font-bold text-xs uppercase tracking-wider">
               PostgreSQL Transaction Log (applications, verification_results, audit_log)
             </h2>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-            SQL
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 tabular-nums">
+            SQL ({sqlLogs.length})
           </span>
         </div>
 
-        <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar font-mono text-xs">
-          {sqlLogs.map((entry) => (
-            <div
-              key={entry.id}
-              className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-            >
-              <div className="space-x-2">
-                <span className="text-sky-400 font-bold">[{entry.operation}]</span>
-                <span className="text-slate-200">{entry.sql}</span>
+        <div className="space-y-2 max-h-60 overflow-y-auto overscroll-contain custom-scrollbar font-mono text-xs">
+          {sqlLogs.length === 0 ? (
+            <p className="text-slate-400 text-xs p-2">
+              No SQL transactions logged yet.
+            </p>
+          ) : (
+            sqlLogs.slice(0, 100).map((entry) => (
+              <div
+                key={entry.id}
+                className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+              >
+                <div className="space-x-2 break-all">
+                  <span className="text-sky-400 font-bold">[{entry.operation}]</span>
+                  <span className="text-slate-200">{entry.sql}</span>
+                </div>
+                <span className="text-[11px] text-slate-400 shrink-0 tabular-nums">
+                  {entry.rowsAffected} row(s) • {entry.timestamp}
+                </span>
               </div>
-              <span className="text-[11px] text-slate-400 shrink-0">
-                {entry.rowsAffected} row(s) • {entry.timestamp}
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
