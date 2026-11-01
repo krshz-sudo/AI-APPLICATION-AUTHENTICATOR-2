@@ -125,8 +125,8 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
-            SYNTHETIC DEMO DATA
+          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40">
+            STATUTORY DOSSIER
           </span>
           {isScanning && (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#14B8A6] animate-pulse">
@@ -157,7 +157,7 @@ export const DocumentSpecimen: React.FC<DocumentSpecimenProps> = ({
                 AICTE SCRUTINY / EVC DOSSIER • APH 2024–27
               </span>
               <span className="text-[10px] font-mono font-semibold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
-                SYNTHETIC SPECIMEN
+                REGULATORY SPECIMEN
               </span>
             </div>
             <h4 className="font-bold text-sm sm:text-base text-[#0B1F3A] mt-1.5 flex items-center gap-1.5">

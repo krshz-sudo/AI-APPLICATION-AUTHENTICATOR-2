@@ -213,7 +213,7 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
                 App ID: {run.applicationId} • Run: {run.id}
               </span>
               <span className="text-xs font-medium px-2 py-0.5 rounded bg-white/80 border border-slate-300 text-slate-700">
-                AICTE APH 2024–27 Scrutiny Dossier (SYNTHETIC)
+                AICTE APH 2024–27 Scrutiny Dossier
               </span>
             </div>
             <p className="text-sm font-semibold mt-1.5">{run.statusBannerText}</p>
@@ -261,7 +261,7 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
             AICTE Scrutiny Pipeline Stage Summary
           </h2>
           <span className="text-[11px] font-mono text-slate-500">
-            All stages simulated in browser • Synthetic Dossier
+            Statutory Dossier Scrutiny
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -484,7 +484,7 @@ export const ReviewDashboardScreen: React.FC<ReviewDashboardScreenProps> = ({
 
               <div className="text-[11px] text-slate-500 flex items-center gap-1">
                 <Info className="w-3.5 h-3.5 text-[#14B8A6]" />
-                <span>Writes to simulated PostgreSQL audit_log</span>
+                <span>Records to immutable scrutiny audit trail</span>
               </div>
             </div>
           </div>

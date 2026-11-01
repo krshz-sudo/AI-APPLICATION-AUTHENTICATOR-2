@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
   Scan,
   ShieldAlert,
@@ -9,10 +8,6 @@ import {
   AlertTriangle,
   HelpCircle,
   SkipForward,
-  Terminal,
-  Server,
-  HardDrive,
-  ChevronDown,
   ArrowRight,
   RotateCcw,
   FileText,
@@ -33,9 +28,7 @@ import { VECTOR_DB_LABEL } from '../mock/vectorStore';
 import { SCENARIO_META } from '../mock/tools';
 import { DocumentSpecimen } from './DocumentSpecimen';
 import { FieldValidationCard } from './FieldValidationCard';
-import { SPRING } from '../motion/tokens';
-import { useReducedMotionSafe } from '../motion/useReducedMotionSafe';
-import { Collapse, FadeUpOnMount, StatusSwap } from '../motion/wrappers';
+import { FadeUpOnMount, StatusSwap } from '../motion/wrappers';
 
 interface PipelineScreenProps {
   run: VerificationRun;
@@ -66,9 +59,7 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
   onOpenPdfSnippet,
   onToggleMarkForReview,
 }) => {
-  const [apiPanelOpen, setApiPanelOpen] = useState(true);
   const [highlightedField, setHighlightedField] = useState<FieldKey | null>(null);
-  const { slideIn, prefersReducedMotion } = useReducedMotionSafe();
 
   const activeRun = progress?.partialRun || run;
   const stages = activeRun.stages;
@@ -386,42 +377,42 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
         </div>
       </div>
 
-      {/* Main Content Grid: Left 8 Cols (Stage Deep-Dive & Fields) | Right 4 Cols (Agent Activity, API Log, Fake PostgreSQL) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left 8 Columns: Stage Deep-Dive */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* Scenario B Special Gate Halt Callout ("TEMPLATE VALIDATION FAILED" + "Correct and Resubmit") */}
-          {stages.template.state === 'failed' && (
-            <div className="rounded-2xl border-2 border-[#DC2626] bg-red-50/90 p-5 space-y-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div className="flex items-start gap-3">
-                  <XCircle className="w-6 h-6 text-[#DC2626] shrink-0 mt-0.5" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-base text-red-950">
-                        TEMPLATE VALIDATION FAILED — Pipeline Stopped at Stage 2 Gate
-                      </h3>
-                      <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-red-200 text-red-900">
-                        STAGE 3 &amp; 4 SKIPPED
-                      </span>
-                    </div>
-                    <p className="text-xs text-red-800 mt-1">
-                      {stages.template.summary}
-                    </p>
+      {/* Main Content: Full-Width Statutory Deep-Dive & Field Inspection Grid */}
+      <div className="space-y-6">
+        {/* Scenario B Special Gate Halt Callout ("TEMPLATE VALIDATION FAILED" + "Correct and Resubmit") */}
+        {stages.template.state === 'failed' && (
+          <div className="rounded-2xl border-2 border-[#DC2626] bg-red-50/90 p-5 space-y-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="flex items-start gap-3">
+                <XCircle className="w-6 h-6 text-[#DC2626] shrink-0 mt-0.5" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-base text-red-950">
+                      TEMPLATE VALIDATION FAILED — Pipeline Stopped at Stage 2 Gate
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-red-200 text-red-900">
+                      STAGE 3 &amp; 4 SKIPPED
+                    </span>
                   </div>
+                  <p className="text-xs text-red-800 mt-1">
+                    {stages.template.summary}
+                  </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={onGoToReview}
-                  className="px-4 py-2 rounded-xl bg-[#DC2626] hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm shrink-0"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Correct and Resubmit</span>
-                </button>
               </div>
+              <button
+                type="button"
+                onClick={onGoToReview}
+                className="px-4 py-2 rounded-xl bg-[#DC2626] hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm shrink-0"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Correct and Resubmit</span>
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
+        {/* 2-Column Responsive Deep-Dive Gates (Stage 3 & Stage 4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Stage 3 Authenticity Analysis Detail Card */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between gap-2 flex-wrap border-b border-slate-100 pb-3">
@@ -680,9 +671,11 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
               </p>
             )}
           </div>
+        </div>
 
-          {/* Document Preview + Extracted Fields side-by-side inside Pipeline */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Full-Width Document Preview (5 cols) + Extracted & Validated Fields (7 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
+          <div className="lg:col-span-5 sticky top-20">
             <DocumentSpecimen
               fileName={activeRun.fileName}
               scenarioId={activeRun.scenarioId}
@@ -692,198 +685,30 @@ export const PipelineScreen: React.FC<PipelineScreenProps> = ({
               isScanning={isRunning && progress?.stepIndex === 1}
               authenticityResult={stages.authenticity.result}
             />
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-[#14B8A6]" />
-                  Extracted &amp; Validated Dossier Fields ({activeRun.fields.length})
-                </h3>
-                <span className="text-xs text-slate-500">
-                  Click red (i) for rule popover
-                </span>
-              </div>
-              {activeRun.fields.map((field) => (
-                <FadeUpOnMount key={field.key}>
-                  <FieldValidationCard
-                    field={field}
-                    isHighlighted={highlightedField === field.key}
-                    onHoverField={setHighlightedField}
-                    onReverifyField={onReverifyField}
-                    onOpenPdfSnippet={onOpenPdfSnippet}
-                    onToggleMarkForReview={onToggleMarkForReview}
-                  />
-                </FadeUpOnMount>
-              ))}
-            </div>
           </div>
-        </div>
 
-        {/* Right 4 Columns: Live Simulated Telemetry Side Panels */}
-        <div className="lg:col-span-4 space-y-5">
-          {/* 1. Agent Activity Log Panel */}
-          <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 shadow-lg overflow-hidden">
-            <div className="px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-teal shrink-0" />
-                <h3 className="font-bold text-xs uppercase tracking-wider">
-                  Agent Activity Log
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono text-slate-400 tabular-nums">
-                {agentLogs.length > 100
-                  ? `Latest 100 of ${agentLogs.length}`
-                  : `${agentLogs.length} entries`}
+          <div className="lg:col-span-7 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#14B8A6]" />
+                Extracted &amp; Validated Dossier Fields ({activeRun.fields.length})
+              </h3>
+              <span className="text-xs text-slate-500">
+                Click red (i) for rule popover
               </span>
             </div>
-            <div className="p-3 max-h-72 overflow-y-auto overscroll-contain custom-scrollbar space-y-2 font-mono text-xs">
-              {agentLogs.length === 0 ? (
-                <p className="text-slate-400 text-xs p-2">No agent calls logged yet.</p>
-              ) : (
-                <AnimatePresence initial={false}>
-                  {agentLogs.slice(0, 100).map((log) => (
-                    <motion.div
-                      key={log.id}
-                      layout={agentLogs.length <= 40 ? 'position' : false}
-                      variants={slideIn}
-                      initial="hidden"
-                      animate="visible"
-                      transition={{
-                        layout: prefersReducedMotion ? { duration: 0 } : SPRING.criticallyDamped,
-                      }}
-                      className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1 [overflow-wrap:anywhere]"
-                    >
-                    <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400">
-                      <span className="text-[#14B8A6] font-semibold">
-                        {log.agent} &rarr; {log.tool}()
-                      </span>
-                      <span className="shrink-0 tabular-nums">
-                        {log.timestamp}{' '}
-                        {log.durationMs > 0 ? `(${log.durationMs}ms)` : ''}
-                      </span>
-                    </div>
-                    <div className="font-sans font-semibold text-white text-xs">
-                      {log.action}
-                    </div>
-                    <div className="font-sans text-[11px] text-slate-300 leading-snug">
-                      {log.detail}
-                    </div>
-                  </motion.div>
-                  ))}
-                </AnimatePresence>
-              )}
-            </div>
-          </div>
-
-          {/* 2. Collapsible API Log Panel (src/mock/api.ts) */}
-          <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 shadow-lg overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setApiPanelOpen(!apiPanelOpen)}
-              className="w-full px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between text-left"
-            >
-              <div className="flex items-center gap-2">
-                <Server className="w-4 h-4 text-amber-500 shrink-0" />
-                <h3 className="font-bold text-xs uppercase tracking-wider">
-                  HTTP / JSON API Log
-                </h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-slate-400 tabular-nums">
-                  {apiLogs.length}
-                </span>
-                {/* Phase 6: single chevron rotates instead of swapping icons */}
-                <ChevronDown
-                  className={`w-4 h-4 text-slate-400 transition-transform duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
-                    apiPanelOpen ? 'rotate-180' : ''
-                  }`}
+            {activeRun.fields.map((field) => (
+              <FadeUpOnMount key={field.key}>
+                <FieldValidationCard
+                  field={field}
+                  isHighlighted={highlightedField === field.key}
+                  onHoverField={setHighlightedField}
+                  onReverifyField={onReverifyField}
+                  onOpenPdfSnippet={onOpenPdfSnippet}
+                  onToggleMarkForReview={onToggleMarkForReview}
                 />
-              </div>
-            </button>
-
-            <Collapse open={apiPanelOpen}>
-              <div className="p-3 max-h-80 overflow-y-auto overscroll-contain custom-scrollbar space-y-2.5 font-mono text-[11px]">
-                {apiLogs.length === 0 ? (
-                  <p className="text-slate-400 text-xs p-2">
-                    No HTTP API requests logged yet.
-                  </p>
-                ) : (
-                  apiLogs.slice(0, 100).map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-bold text-white">
-                          <span className="text-[#14B8A6]">{entry.method}</span>{' '}
-                          {entry.endpoint}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 tabular-nums ${
-                            entry.statusCode === 200
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                              : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                          }`}
-                        >
-                          HTTP {entry.statusCode} • {entry.latencyMs}ms
-                        </span>
-                      </div>
-                      <div className="text-slate-400">
-                        <span className="text-slate-500">Req: </span>
-                        <code className="text-slate-300 break-all">
-                          {JSON.stringify(entry.requestJson)}
-                        </code>
-                      </div>
-                      <div className="text-slate-400">
-                        <span className="text-slate-500">Res: </span>
-                        <code className="text-[#14B8A6] break-all">
-                          {JSON.stringify(entry.responseJson)}
-                        </code>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </Collapse>
-          </div>
-
-          {/* 3. Mini Fake PostgreSQL Log Panel (src/mock/postgres.ts) */}
-          <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 shadow-lg overflow-hidden">
-            <div className="px-4 py-3 bg-[#071527] border-b border-slate-800 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <HardDrive className="w-4 h-4 text-sky-400 shrink-0" />
-                <h3 className="font-bold text-xs uppercase tracking-wider">
-                  PostgreSQL Transaction Log
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 tabular-nums">
-                SQL ({sqlLogs.length})
-              </span>
-            </div>
-            <div className="p-3 max-h-64 overflow-y-auto overscroll-contain custom-scrollbar space-y-2 font-mono text-[11px]">
-              {sqlLogs.length === 0 ? (
-                <p className="text-slate-400 text-xs p-2">
-                  No SQL transactions logged yet.
-                </p>
-              ) : (
-                sqlLogs.slice(0, 100).map((sql) => (
-                  <div
-                    key={sql.id}
-                    className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1"
-                  >
-                    <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400">
-                      <span className="text-sky-400 font-bold">
-                        {sql.operation} &bull; {sql.table}
-                      </span>
-                      <span className="shrink-0 tabular-nums">{sql.timestamp}</span>
-                    </div>
-                    <div className="text-slate-200 break-all leading-relaxed">
-                      {sql.sql}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+              </FadeUpOnMount>
+            ))}
           </div>
         </div>
       </div>

@@ -7,7 +7,6 @@ import {
   HelpCircle,
   ArrowRight,
   ClipboardList,
-  HardDrive,
   RefreshCw,
   Search,
 } from 'lucide-react';
@@ -276,44 +275,6 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({
               )}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Live Fake PostgreSQL Query Log */}
-      <div className="bg-[#0B1F3A] text-white rounded-2xl border border-slate-800 p-5 shadow-lg space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <HardDrive className="w-4 h-4 text-sky-400 shrink-0" />
-            <h2 className="font-bold text-xs uppercase tracking-wider">
-              PostgreSQL Transaction Log (applications, verification_results, audit_log)
-            </h2>
-          </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 tabular-nums">
-            SQL ({sqlLogs.length})
-          </span>
-        </div>
-
-        <div className="space-y-2 max-h-60 overflow-y-auto overscroll-contain custom-scrollbar font-mono text-xs">
-          {sqlLogs.length === 0 ? (
-            <p className="text-slate-400 text-xs p-2">
-              No SQL transactions logged yet.
-            </p>
-          ) : (
-            sqlLogs.slice(0, 100).map((entry) => (
-              <div
-                key={entry.id}
-                className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-              >
-                <div className="space-x-2 break-all">
-                  <span className="text-sky-400 font-bold">[{entry.operation}]</span>
-                  <span className="text-slate-200">{entry.sql}</span>
-                </div>
-                <span className="text-[11px] text-slate-400 shrink-0 tabular-nums">
-                  {entry.rowsAffected} row(s) • {entry.timestamp}
-                </span>
-              </div>
-            ))
-          )}
         </div>
       </div>
     </div>

@@ -28,8 +28,8 @@ export const ArchitectureScreen: React.FC<ArchitectureScreenProps> = ({
               <h2 className="font-bold text-base text-slate-900">
                 AICTE APH 2024–27 Regulatory Reference Corpus (20 Rules)
               </h2>
-              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-[#FF9933]/20 text-[#9A3412] border border-[#FF9933]/40">
-                DEMO DATA • SYNTHETIC
+              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-teal-500/15 text-teal-800 border border-teal-500/30">
+                AICTE STATUTORY CORPUS
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">

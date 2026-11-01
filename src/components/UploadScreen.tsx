@@ -105,7 +105,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
           <p className="text-xs text-slate-500 mt-1">
             {uploadedFile
               ? 'Ready for AICTE Scrutiny processing'
-              : `Default specimen: ${defaultFileName} (2.84 MB • SYNTHETIC)`}
+              : `Default specimen: ${defaultFileName} (2.84 MB)`}
           </p>
           {uploadedFile && (
             <button

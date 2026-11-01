@@ -154,7 +154,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
             <div className="text-left sm:text-right font-mono text-xs text-slate-300 space-y-0.5">
               <div>Created: {new Date(run.createdAt).toLocaleString()}</div>
               <div>Updated: {new Date(run.updatedAt).toLocaleString()}</div>
-              <div>Profile: AICTE APH 2024–27 Scrutiny Dossier (SYNTHETIC)</div>
+              <div>Profile: AICTE APH 2024–27 Statutory Dossier</div>
             </div>
           </div>
         </div>

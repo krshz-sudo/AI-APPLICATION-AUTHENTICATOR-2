@@ -15,12 +15,18 @@ import {
   X,
   Terminal,
   ChevronDown,
+  ScanText,
+  Fingerprint,
+  ShieldCheck,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { Logo } from '../brand/Logo';
-import { DURATION, DURATION_MS, EASING, TRANSITION } from '../../motion/tokens';
+import { DURATION, DURATION_MS, EASING, TRANSITION, SPRING } from '../../motion/tokens';
 import { useReducedMotionSafe } from '../../motion/useReducedMotionSafe';
 import { Collapse } from '../../motion/wrappers';
 import { useAuth } from '../../context/AuthContext';
+import { LandingHeroSpecimen } from './LandingHeroSpecimen';
 
 interface PipelineStageSpec {
   step: string;
@@ -30,6 +36,11 @@ interface PipelineStageSpec {
   gateRule: string;
   summary: string;
   outputMetric: string;
+  icon: React.ComponentType<{ className?: string }>;
+  accentGlow: string;
+  badgeTone: string;
+  dotColor: string;
+  connectorGradient: string;
 }
 
 const PIPELINE_STAGES: PipelineStageSpec[] = [
@@ -42,6 +53,11 @@ const PIPELINE_STAGES: PipelineStageSpec[] = [
     summary:
       'Parses multi-page institutional PDFs into 10 normalized statutory fields: PID, Application ID, Course, Intake, Built-up Area, Land Tenure, Fire NOC, and Faculty-Student Ratio.',
     outputMetric: '10/10 Fields Structured',
+    icon: ScanText,
+    accentGlow: 'shadow-[0_0_30px_rgba(20,184,166,0.2)]',
+    badgeTone: 'border-teal-500/40 bg-teal-500/20 text-teal-300',
+    dotColor: 'bg-teal-400',
+    connectorGradient: 'from-teal-400 to-emerald-400',
   },
   {
     step: 'STAGE 02',
@@ -52,6 +68,11 @@ const PIPELINE_STAGES: PipelineStageSpec[] = [
     summary:
       'Enforces hard structural preconditions before expensive downstream checks: Permanent Institute ID presence and strict DD/MM/YYYY statutory date formatting. Halts pipeline on violation.',
     outputMetric: 'Gate Decision: YES / HALT',
+    icon: ShieldCheck,
+    accentGlow: 'shadow-[0_0_30px_rgba(16,185,129,0.2)]',
+    badgeTone: 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300',
+    dotColor: 'bg-emerald-400',
+    connectorGradient: 'from-emerald-400 to-amber-400',
   },
   {
     step: 'STAGE 03',
@@ -62,6 +83,11 @@ const PIPELINE_STAGES: PipelineStageSpec[] = [
     summary:
       'Screens Error Level Analysis (ELA) compression residuals, perceptual lab photo hashes (pHash), and DigiLocker / State Fire Portal records. Surfaces elevated anomalies strictly as a risk indicator for officer inspection.',
     outputMetric: 'Risk Indicator: 0.11–0.78',
+    icon: Fingerprint,
+    accentGlow: 'shadow-[0_0_30px_rgba(245,158,11,0.2)]',
+    badgeTone: 'border-amber-500/40 bg-amber-500/20 text-amber-300',
+    dotColor: 'bg-amber-400',
+    connectorGradient: 'from-amber-400 to-indigo-400',
   },
   {
     step: 'STAGE 04',
@@ -72,6 +98,11 @@ const PIPELINE_STAGES: PipelineStageSpec[] = [
     summary:
       'Retrieves top-k AICTE Approval Process Handbook clauses from ChromaDB vector storage and runs deterministic rule evaluators to classify each field as Compliant, Non-Compliant, or Requires Human Review.',
     outputMetric: 'Citation-Backed Verdict',
+    icon: Scale,
+    accentGlow: 'shadow-[0_0_30px_rgba(99,102,241,0.2)]',
+    badgeTone: 'border-indigo-500/40 bg-indigo-500/20 text-indigo-300',
+    dotColor: 'bg-indigo-400',
+    connectorGradient: 'from-indigo-400 to-teal-400',
   },
 ];
 
@@ -94,7 +125,7 @@ const SCENARIO_SHOWCASE: ScenarioShowcaseCard[] = [
   {
     id: 'A',
     code: 'SCENARIO A',
-    institutionName: 'SAHYADRI INSTITUTE OF TECHNOLOGY AND MANAGEMENT (SYNTHETIC)',
+    institutionName: 'SAHYADRI INSTITUTE OF TECHNOLOGY AND MANAGEMENT',
     pid: '1-4829104',
     appId: '1-44642983101',
     applicationType: 'Extension of Approval (EoA 2026-27)',
@@ -109,7 +140,7 @@ const SCENARIO_SHOWCASE: ScenarioShowcaseCard[] = [
   {
     id: 'B',
     code: 'SCENARIO B',
-    institutionName: 'ARAVALLI COLLEGE OF ENGINEERING AND RESEARCH (SYNTHETIC)',
+    institutionName: 'ARAVALLI COLLEGE OF ENGINEERING AND RESEARCH',
     pid: '[MISSING]',
     appId: '1-44642983192',
     applicationType: 'Increase in Intake (2026-27)',
@@ -124,7 +155,7 @@ const SCENARIO_SHOWCASE: ScenarioShowcaseCard[] = [
   {
     id: 'C',
     code: 'SCENARIO C',
-    institutionName: 'DAKSHIN BHARAT INSTITUTE OF INFORMATION TECHNOLOGY (SYNTHETIC)',
+    institutionName: 'DAKSHIN BHARAT INSTITUTE OF INFORMATION TECHNOLOGY',
     pid: '1-6193058',
     appId: '1-44642983245',
     applicationType: 'Extension of Approval (EoA 2026-27)',
@@ -139,7 +170,7 @@ const SCENARIO_SHOWCASE: ScenarioShowcaseCard[] = [
   {
     id: 'D',
     code: 'SCENARIO D • MAIN DEMO',
-    institutionName: 'NALANDA VISHWA ENGINEERING ACADEMY (SYNTHETIC)',
+    institutionName: 'NALANDA VISHWA ENGINEERING ACADEMY',
     pid: '1-5592509',
     appId: '1-44642983297',
     applicationType: 'Extension of Approval (EoA 2026-27)',
@@ -154,7 +185,7 @@ const SCENARIO_SHOWCASE: ScenarioShowcaseCard[] = [
   {
     id: 'E',
     code: 'SCENARIO E',
-    institutionName: 'BRAHMAPUTRA FRONTIER POLYTECHNIC AND TECH CAMPUS (SYNTHETIC)',
+    institutionName: 'BRAHMAPUTRA FRONTIER POLYTECHNIC AND TECH CAMPUS',
     pid: '1-8904112',
     appId: '1-44642983388',
     applicationType: 'EoA with Special Regional Provision (2026-27)',
@@ -210,6 +241,18 @@ export const LandingPage: React.FC = () => {
     };
   }, [isPipelineInView, prefersReducedMotion]);
 
+  const handleReplayPipeline = () => {
+    if (prefersReducedMotion) {
+      setLitStages(4);
+      return;
+    }
+    setLitStages(0);
+    setTimeout(() => setLitStages(1), 80);
+    setTimeout(() => setLitStages(2), 320);
+    setTimeout(() => setLitStages(3), 560);
+    setTimeout(() => setLitStages(4), 800);
+  };
+
   const statusChipStyles = (tone: ScenarioShowcaseCard['statusTone']) => {
     switch (tone) {
       case 'green':
@@ -238,24 +281,6 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-[100svh] flex flex-col bg-[#F8FAFC] text-slate-900">
-      {/* Persistent Top Regulatory Simulation Notice Bar */}
-      <div className="bg-navy-900 border-b border-slate-800/90 text-slate-300 text-[11px] sm:text-xs font-mono py-2 px-4 safe-top">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-saffron shrink-0" />
-            <span className="font-semibold text-white tracking-wider uppercase">
-              PROTOTYPE SIMULATION / SYNTHETIC DATA
-            </span>
-            <span className="hidden md:inline text-slate-400">
-              — All institutional dossiers, PIDs, and verification runs are synthetic for SIH26261 regulatory demonstration.
-            </span>
-          </div>
-          <span className="text-teal-400 font-semibold">
-            AICTE APH 2024–27 Reference Corpus
-          </span>
-        </div>
-      </div>
-
       {/* 1. Navbar */}
       <header className="bg-navy-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 safe-top">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
@@ -427,14 +452,15 @@ export const LandingPage: React.FC = () => {
               <div className="lg:col-span-7 space-y-6">
                 <motion.div
                   variants={fadeUp}
-                  className="inline-flex flex-wrap items-center gap-2.5 px-3 py-1.5 rounded-full bg-navy-800 border border-slate-700/90 text-xs font-mono"
+                  className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-navy-800/90 border border-teal-500/30 text-xs font-mono shadow-sm"
                 >
-                  <span className="px-2 py-0.5 rounded bg-saffron/15 text-saffron border border-saffron/30 font-semibold">
-                    PROTOTYPE SIMULATION / SYNTHETIC DATA
+                  <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75 motion-reduce:hidden" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-teal" />
                   </span>
-                  <span className="text-slate-300">
-                    SIH26261 • AICTE Scrutiny &amp; Compliance Portal
-                  </span>
+                  <span className="text-teal-300 font-semibold">STATUTORY SCRUTINY ENGINE</span>
+                  <span className="text-slate-500">•</span>
+                  <span className="text-slate-200">AICTE Regulatory Compliance &amp; Verification</span>
                 </motion.div>
 
                 {/* Animated Monolith Mark + Institutional Eyebrow */}
@@ -533,110 +559,9 @@ export const LandingPage: React.FC = () => {
                 </motion.div>
               </div>
 
-              {/* Right Column: Live Architectural Dossier Inspection Specimen */}
+              {/* Right Column: Custom Illustrated Form Specimen */}
               <motion.div variants={fadeUp} className="lg:col-span-5">
-                <div className="bg-navy-800/90 border border-slate-700/90 rounded-2xl p-4 sm:p-5 shadow-panel space-y-4">
-                  {/* Specimen Header */}
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-700/80 pb-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-red-500/15 text-red-300 border border-red-500/30">
-                          SCENARIO D • NON-COMPLIANT
-                        </span>
-                        <span className="font-mono text-[11px] text-slate-400 tabular-nums">
-                          PID: 1-5592509
-                        </span>
-                      </div>
-                      <h2 className="text-xs sm:text-sm font-semibold text-white mt-1.5 truncate">
-                        NALANDA VISHWA ENGINEERING ACADEMY (SYNTHETIC)
-                      </h2>
-                    </div>
-                    <Link
-                      to="/app"
-                      className="shrink-0 font-mono text-[11px] text-teal-400 hover:text-teal-300 underline underline-offset-4"
-                    >
-                      Verify in /app →
-                    </Link>
-                  </div>
-
-                  {/* Mini 4-Stage Status Bar */}
-                  <div className="grid grid-cols-4 gap-1.5 text-[10px] font-mono">
-                    <div className="bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-2 py-1.5 text-emerald-300">
-                      <div className="font-semibold">1. OCR</div>
-                      <div className="text-emerald-400/90">PASSED</div>
-                    </div>
-                    <div className="bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-2 py-1.5 text-emerald-300">
-                      <div className="font-semibold">2. GATE</div>
-                      <div className="text-emerald-400/90">PASSED</div>
-                    </div>
-                    <div className="bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-2 py-1.5 text-emerald-300">
-                      <div className="font-semibold">3. AUTH</div>
-                      <div className="text-emerald-400/90">0.14 LOW</div>
-                    </div>
-                    <div className="bg-red-950/70 border border-red-600/60 rounded-lg px-2 py-1.5 text-red-200">
-                      <div className="font-semibold">4. RAG</div>
-                      <div className="text-red-300">2 VIOLATIONS</div>
-                    </div>
-                  </div>
-
-                  {/* Specimen Field Rows */}
-                  <div className="space-y-2.5 text-xs">
-                    <div className="bg-navy-900/80 border border-emerald-700/40 rounded-xl p-3 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-mono text-[10px] text-slate-400 uppercase">
-                          PROPOSED INTAKE • RULE APH-2.4
-                        </div>
-                        <div className="font-medium text-slate-100 mt-0.5 truncate">
-                          180 Seats (3 Divisions • Univ. NOC BTU/2026/408)
-                        </div>
-                      </div>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
-                        <CheckCircle2 className="w-3 h-3" />
-                        GREEN
-                      </span>
-                    </div>
-
-                    <div className="bg-red-950/35 border border-red-500/50 rounded-xl p-3 space-y-1.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="font-mono text-[10px] text-red-300 uppercase font-semibold">
-                          FACULTY COUNT &amp; FSR • VIOLATES RULE APH-6.1 (p.119)
-                        </div>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-red-500/20 text-red-200 border border-red-500/40 shrink-0">
-                          <XCircle className="w-3 h-3" />
-                          RED
-                        </span>
-                      </div>
-                      <div className="font-mono text-xs text-white font-semibold tabular-nums">
-                        Extracted: &quot;18 Faculty (FSR 1:25)&quot;
-                      </div>
-                      <p className="text-[11px] text-slate-300 leading-snug">
-                        Handbook Norm: Minimum 1:20 Faculty-Student Ratio required for UG
-                        Engineering (≥ 24 faculty for 480 total seats).
-                      </p>
-                    </div>
-
-                    <div className="bg-red-950/35 border border-red-500/50 rounded-xl p-3 space-y-1.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="font-mono text-[10px] text-red-300 uppercase font-semibold">
-                          FIRE &amp; LIFE SAFETY NOC • VIOLATES RULE APH-5.1 (p.102)
-                        </div>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-red-500/20 text-red-200 border border-red-500/40 shrink-0">
-                          <XCircle className="w-3 h-3" />
-                          RED
-                        </span>
-                      </div>
-                      <div className="font-mono text-xs text-white font-semibold tabular-nums">
-                        Extracted: &quot;15/03/2024&quot; (Expired prior to Academic Year 2026–27)
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Specimen Footer */}
-                  <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                    <span>POST /api/verify → 422 (2410ms)</span>
-                    <span className="text-teal-400">Supports Officer Inline Re-verify</span>
-                  </div>
-                </div>
+                <LandingHeroSpecimen />
               </motion.div>
             </motion.div>
           </div>
@@ -678,140 +603,191 @@ export const LandingPage: React.FC = () => {
 
               <motion.div
                 variants={fadeUp}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700 self-start lg:self-auto"
+                className="flex items-center gap-3 self-start lg:self-auto flex-wrap"
               >
-                <Terminal className="w-4 h-4 text-teal-700" />
-                <span>
-                  Active Sequence: <strong className="text-navy-900">{litStages}/4 Stages Lit</strong>
-                </span>
+                <button
+                  type="button"
+                  onClick={handleReplayPipeline}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-mono font-semibold transition-colors shadow-2xs tactile-press"
+                  title="Re-run the sequential pipeline verification animation"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-teal-700" />
+                  <span>Replay Flow</span>
+                </button>
+
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75 motion-reduce:hidden" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-teal" />
+                  </span>
+                  <span>
+                    Active Sequence: <strong className="text-navy-900">{litStages}/4 Stages Lit</strong>
+                  </span>
+                </div>
               </motion.div>
             </motion.div>
 
-            {/* 4-Stage Sequential Grid (Tappable Accordion Cards, 1 open at a time) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
+            {/* 4-Stage Sequential Grid (Animated Interactive Stage Cards with Flow Bridges) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-start relative">
               {PIPELINE_STAGES.map((stage, index) => {
                 const stageNumber = index + 1;
                 const isLit = litStages >= stageNumber;
                 const isExpanded = expandedStageId === stage.id;
+                const StageIcon = stage.icon;
 
                 return (
-                  <motion.article
-                    key={stage.id}
-                    variants={fadeUp}
-                    initial="hidden"
-                    animate={isPipelineInView ? 'visible' : 'hidden'}
-                    transition={getTransition({
-                      duration: DURATION.base,
-                      ease: EASING.easeOut,
-                      delay: prefersReducedMotion ? 0 : index * 0.06,
-                    })}
-                    className={`relative rounded-xl border transition-colors duration-200 overflow-hidden ${
-                      isLit
-                        ? isExpanded
-                          ? 'bg-navy-900 text-white border-teal shadow-panel ring-1 ring-teal/40'
-                          : 'bg-navy-900 text-white border-teal-500/70 shadow-panel hover:border-teal-400'
-                        : 'bg-[#F8FAFC] text-slate-500 border-slate-200'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedStageId((prev) =>
-                          prev === stage.id ? null : stage.id
-                        )
-                      }
-                      aria-expanded={isExpanded}
-                      aria-controls={`stage-detail-${stage.id}`}
-                      className="w-full p-5 text-left flex flex-col justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal tactile-press"
+                  <div key={stage.id} className="relative">
+                    <motion.article
+                      variants={fadeUp}
+                      initial="hidden"
+                      animate={isPipelineInView ? 'visible' : 'hidden'}
+                      whileHover={prefersReducedMotion ? {} : { y: -4, transition: SPRING.gentle }}
+                      transition={getTransition({
+                        duration: DURATION.base,
+                        ease: EASING.easeOut,
+                        delay: prefersReducedMotion ? 0 : index * 0.06,
+                      })}
+                      className={`relative rounded-2xl border transition-all duration-300 overflow-hidden ${
+                        isLit
+                          ? isExpanded
+                            ? `bg-navy-900 text-white border-teal-400 ${stage.accentGlow} ring-1 ring-teal-400/40`
+                            : `bg-navy-900 text-white ${stage.accentGlow} border-slate-700 hover:border-teal-400`
+                          : 'bg-[#F8FAFC] text-slate-500 border-slate-200'
+                      }`}
                     >
-                      {/* Top Progress Connector Bar (composite transform scaleX) */}
-                      <div className="w-full h-1 bg-slate-200/30 rounded-full overflow-hidden mb-4">
-                        <motion.div
-                          initial={{ scaleX: 0 }}
-                          animate={{ scaleX: isLit ? 1 : 0 }}
-                          transition={getTransition(TRANSITION.slowOut)}
-                          style={{ transformOrigin: 'left' }}
-                          className="h-full w-full bg-teal"
-                        />
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedStageId((prev) =>
+                            prev === stage.id ? null : stage.id
+                          )
+                        }
+                        aria-expanded={isExpanded}
+                        aria-controls={`stage-detail-${stage.id}`}
+                        className="w-full p-5 text-left flex flex-col justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal tactile-press"
+                      >
+                        {/* Top Animated Progress Bar */}
+                        <div className="w-full h-1.5 bg-slate-800/50 rounded-full overflow-hidden mb-4">
+                          <motion.div
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: isLit ? 1 : 0 }}
+                            transition={getTransition(TRANSITION.slowOut)}
+                            style={{ transformOrigin: 'left' }}
+                            className={`h-full w-full bg-gradient-to-r ${stage.connectorGradient}`}
+                          />
+                        </div>
 
-                      <div className="space-y-3 w-full">
-                        <div className="flex items-center justify-between gap-2">
-                          <span
-                            className={`font-mono text-xs font-bold tracking-wider ${
-                              isLit ? 'text-teal-400' : 'text-slate-400'
+                        <div className="space-y-3 w-full">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              {/* Stage Luminous Icon */}
+                              <div
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                                  isLit
+                                    ? 'bg-slate-800/90 border-slate-700 text-white shadow-xs'
+                                    : 'bg-slate-200/90 border-slate-300 text-slate-400'
+                                }`}
+                              >
+                                <StageIcon className={`w-4 h-4 ${isLit ? stage.dotColor.replace('bg-', 'text-') : 'text-slate-400'}`} />
+                              </div>
+                              <span
+                                className={`font-mono text-xs font-bold tracking-wider ${
+                                  isLit ? 'text-teal-300' : 'text-slate-400'
+                                }`}
+                              >
+                                {stage.step}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <motion.span
+                                variants={scaleIn}
+                                initial="hidden"
+                                animate={isLit ? 'visible' : 'hidden'}
+                                className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                                  isLit
+                                    ? stage.badgeTone
+                                    : 'bg-slate-200 text-slate-500 border-slate-300'
+                                }`}
+                              >
+                                {isLit && (
+                                  <span className="relative flex h-1.5 w-1.5">
+                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${stage.dotColor} opacity-75 motion-reduce:hidden`} />
+                                    <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${stage.dotColor}`} />
+                                  </span>
+                                )}
+                                <span>{isLit ? 'ACTIVE GATE' : 'WAITING'}</span>
+                              </motion.span>
+                              <ChevronDown
+                                className={`w-4 h-4 transition-transform duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
+                                  isLit ? 'text-teal-400' : 'text-slate-400'
+                                } ${isExpanded ? 'rotate-180' : ''}`}
+                              />
+                            </div>
+                          </div>
+
+                          <h3
+                            className={`text-base font-bold tracking-tight leading-snug ${
+                              isLit ? 'text-white' : 'text-slate-700'
                             }`}
                           >
-                            {stage.step}
+                            {stage.title}
+                          </h3>
+                        </div>
+
+                        <div
+                          className={`mt-4 pt-3 border-t w-full flex items-center justify-between gap-2 text-[11px] font-mono ${
+                            isLit
+                              ? 'border-slate-800 text-slate-300'
+                              : 'border-slate-200 text-slate-400'
+                          }`}
+                        >
+                          <span className="truncate">{stage.toolName}</span>
+                          <span
+                            className={`font-semibold shrink-0 ${
+                              isLit ? 'text-saffron' : 'text-slate-400'
+                            }`}
+                          >
+                            {stage.gateRule}
                           </span>
-                          <div className="flex items-center gap-1.5">
-                            <motion.span
-                              variants={scaleIn}
-                              initial="hidden"
-                              animate={isLit ? 'visible' : 'hidden'}
-                              className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                                isLit
-                                  ? 'bg-teal-500/15 text-teal-300 border-teal-500/40'
-                                  : 'bg-slate-200 text-slate-500 border-slate-300'
-                              }`}
-                            >
-                              {isLit ? 'STAGE ACTIVE' : 'WAITING'}
-                            </motion.span>
-                            <ChevronDown
-                              className={`w-4 h-4 transition-transform duration-[180ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none ${
-                                isLit ? 'text-teal-400' : 'text-slate-400'
-                              } ${isExpanded ? 'rotate-180' : ''}`}
-                            />
+                        </div>
+                      </button>
+
+                      <Collapse open={isExpanded}>
+                        <div
+                          id={`stage-detail-${stage.id}`}
+                          className={`px-5 pb-5 pt-1 border-t space-y-2.5 ${
+                            isLit ? 'border-slate-800/90' : 'border-slate-200'
+                          }`}
+                        >
+                          <p
+                            className={`text-xs leading-relaxed ${
+                              isLit ? 'text-slate-300' : 'text-slate-600'
+                            }`}
+                          >
+                            {stage.summary}
+                          </p>
+                          <div className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold px-2.5 py-1 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                            <span>{stage.outputMetric}</span>
                           </div>
                         </div>
+                      </Collapse>
+                    </motion.article>
 
-                        <h3
-                          className={`text-base font-bold tracking-tight ${
-                            isLit ? 'text-white' : 'text-slate-700'
-                          }`}
-                        >
-                          {stage.title}
-                        </h3>
-                      </div>
-
+                    {/* Connecting Flow Arrow Between Stages (desktop only) */}
+                    {index < PIPELINE_STAGES.length - 1 && (
                       <div
-                        className={`mt-4 pt-3 border-t w-full flex items-center justify-between gap-2 text-[11px] font-mono ${
-                          isLit
-                            ? 'border-slate-800 text-slate-300'
-                            : 'border-slate-200 text-slate-400'
-                        }`}
+                        aria-hidden="true"
+                        className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-6 h-6 rounded-full bg-navy-800 border border-slate-700 items-center justify-center text-slate-400 shadow-md pointer-events-none"
                       >
-                        <span className="truncate">{stage.toolName}</span>
-                        <span
-                          className={`font-semibold shrink-0 ${
-                            isLit ? 'text-saffron' : 'text-slate-400'
+                        <ArrowRight
+                          className={`w-3.5 h-3.5 transition-colors duration-200 ${
+                            isLit ? 'text-teal-400' : 'text-slate-600'
                           }`}
-                        >
-                          {stage.gateRule}
-                        </span>
+                        />
                       </div>
-                    </button>
-
-                    <Collapse open={isExpanded}>
-                      <div
-                        id={`stage-detail-${stage.id}`}
-                        className={`px-5 pb-5 pt-1 border-t space-y-2.5 ${
-                          isLit ? 'border-slate-800/90' : 'border-slate-200'
-                        }`}
-                      >
-                        <p
-                          className={`text-xs leading-relaxed ${
-                            isLit ? 'text-slate-300' : 'text-slate-600'
-                          }`}
-                        >
-                          {stage.summary}
-                        </p>
-                        <div className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold px-2.5 py-1 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30">
-                          <span>{stage.outputMetric}</span>
-                        </div>
-                      </div>
-                    </Collapse>
-                  </motion.article>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -836,7 +812,7 @@ export const LandingPage: React.FC = () => {
                   variants={fadeUp}
                   className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-teal-700"
                 >
-                  SYNTHETIC INSTITUTIONAL BENCHMARK SUITE
+                  STATUTORY INSTITUTIONAL BENCHMARK SUITE
                 </motion.div>
                 <motion.h2
                   variants={fadeUp}
@@ -845,7 +821,7 @@ export const LandingPage: React.FC = () => {
                   Scenarios A–E Dossier Verification Matrix
                 </motion.h2>
                 <motion.p variants={fadeUp} className="text-sm sm:text-base text-slate-600">
-                  Explore five pre-seeded synthetic institutions testing every regulatory
+                  Explore five pre-seeded institutional dossiers testing every regulatory
                   disposition: full compliance, Stage 2 gate halt, Stage 3 forensic{' '}
                   <strong className="font-semibold text-slate-800">risk indicator</strong>{' '}
                   flagging, Stage 4 APH norm failure, and Standing Hearing Committee escalation.
@@ -1158,12 +1134,11 @@ export const LandingPage: React.FC = () => {
 
           <div className="border-t border-slate-800 pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
             <p className="font-mono text-[11px] text-slate-400">
-              <strong className="text-saffron">PROTOTYPE SIMULATION / SYNTHETIC DATA:</strong>{' '}
-              Independent technical demonstration for Smart India Hackathon (SIH26261). Forensic
-              authenticity outputs are risk indicators for human review, never proof of forgery.
+              <strong className="text-teal-400">STATUTORY SCRUTINY ADVISORY:</strong>{' '}
+              Forensic authenticity outputs are risk indicators for scrutiny officer review, never automated proof of forgery. All regulatory actions require human-in-the-loop sign-off under AICTE APH 2024–27.
             </p>
             <span className="font-mono text-[11px] text-slate-500 shrink-0">
-              AICTE APH 2024–27 • React + TypeScript
+              AICTE APH 2024–27 • Regulatory Verification Portal
             </span>
           </div>
         </div>

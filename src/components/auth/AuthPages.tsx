@@ -380,10 +380,10 @@ export const SignInPage: React.FC = () => {
         </button>
       </form>
 
-      {/* Instant Demo Session Bypass for SIH Evaluators / Offline Testing */}
+      {/* Quick Access Demo Sessions */}
       <div className="pt-3 border-t border-slate-800 space-y-2">
         <p className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
-          SIH 2026 EVALUATOR QUICK ACCESS (SYNTHETIC SESSION)
+          OFFICER QUICK ACCESS (ONE-CLICK DEMO LOGIN)
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
